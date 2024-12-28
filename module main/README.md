@@ -2,7 +2,7 @@
 
 ## Схема работы главного модуля
 
-[<img src="https://github.com/Teru3301/KFU/blob/main/module main/схема работы модуля.png"/>]()
+[<img src="https://github.com/Teru3301/Group-Project-course-1-semester-1/blob/main/module main/схема работы модуля.png"/>]()
 
 ## Ресурсы для взаимодействия
 - Пользователи
