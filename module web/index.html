@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tester</title>
+    <link rel="stylesheet" href="/module web/style.css">
+</head>
+
+<body>
+    <h2>Вход</h2>
+    <!-- Форма для входа -->
+    <form method="post" autocomplete="off" action="http://localhost:3000/login"> <!-- Action заменить на действительный!!! -->
+        <fieldset>
+            <legend>Введите данные: </legend>
+            <div>
+                <label for="user-name">Логин: </label>
+                <input type="text" id="user-name" name="user-name" placeholder="Введите логин" size="24" maxlength="10"required>
+            </div>
+
+            <div>
+                <label for="user-pass">Пароль: </label>
+                <input type="password" id="user-pass" name="user-pass" placeholder="Введите пароль" size="24" minlength="8" maxlength="16" required>
+            </div>
+            <div>
+                <input type="submit" value="Войти">
+            </div>
+        </fieldset>
+    </form>
+</body>
+
+</html>
