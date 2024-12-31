@@ -1,6 +1,6 @@
 ^D:\REPO\GROUP-PROJECT-COURSE-1-SEMESTER-1\MODULE MAIN\BUILD\CMAKEFILES\AB73826E454A5C977568E170B14460D0\GENERATE.STAMP.RULE
 setlocal
-"C:\Program Files\CMake\bin\cmake.exe" "-SD:/Repo/Group-Project-course-1-semester-1/module main" "-BD:/Repo/Group-Project-course-1-semester-1/module main/build" --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file "D:/Repo/Group-Project-course-1-semester-1/module main/build/Module main.sln"
+"C:\Program Files\CMake\bin\cmake.exe" "-SD:/Repo/Group-Project-course-1-semester-1/module main" "-BD:/Repo/Group-Project-course-1-semester-1/module main/build" --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file "D:/Repo/Group-Project-course-1-semester-1/module main/build/MainServer.sln"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone

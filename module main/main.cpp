@@ -8,33 +8,16 @@
 #include <thread>
 #include <iostream>
 
-#define ADRES "127.0.0.1"
+#include "handleClient.h"	//		работа с клиентом
+#include "getAddress.h"		//		получение айпи устройства в локальной сети
+
+
+const char* ADRES = "127.0.0.1";	//	локалхост в коде меняется на текущий адрес устройства в локальной сети (можно будет подключиться с другого устройства)
 #define PORT  1111
-
-
-
-// ФУНКЦИЯ ДЛЯ ОБРАБОТКИ ПОДКЛЮЧЕНИЯ
-
-void handleClient(SOCKET clientSocket) {
-	std::cout << "Client connected!" << std::endl;
-
-	// Отправка сообщения клиенту
-	std::string msg = "Welcome to the server!\n";
-	int sizeMsg = msg.size();
-	send(clientSocket, (char*)&sizeMsg, sizeof(int), NULL);
-	send(clientSocket, msg.c_str(), msg.size(), NULL);
-
-	system("pause");
-
-	// Закрытие сокета клиента
-	closesocket(clientSocket);
-}
-
 
 
 int main()
 {
-
 	//		ЗАГРУЗКА СЕТЕВОЙ БИБЛИОТЕКИ
 
 	std::cout << "Load lib...       ";
@@ -43,10 +26,10 @@ int main()
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
 		std::cout << "Error.\n";
 		return 1;
-	} else {
+	}
+	else {
 		std::cout << "Done.\n";
 	}
-
 
 
 	//		СОЗДАНИЕ СОКЕТА СЕРВЕРА
@@ -58,41 +41,44 @@ int main()
 		std::cout << "Error.\n";
 		WSACleanup();
 		return 1;
-	} else {
+	}
+	else {
 		std::cout << "Done.\n";
 	}
 
 
+	//		ОПРЕДЕЛЕНИЕ АДРЕСА
+	//		если не вызывать сервер запустится на локалхосте
+
+	//		ADRES = getLocalIPAddress();
+
 
 	//		ПРИСВАИВАНИЕ АДРЕСА И ПОРТА
-	
+
 	std::cout << "Adres and port... ";
 
 	sockaddr_in serverAddr = {};
 	serverAddr.sin_family = AF_INET;
 	serverAddr.sin_addr.s_addr = inet_addr(ADRES);
 	serverAddr.sin_port = htons(PORT);
+	bind(serverSocket, (sockaddr*)&serverAddr, sizeof(serverAddr));
 
 	std::cout << "Done.\n";
 
 
-
-	//		ПРИВЯЗКА СОКЕКА К ПОРТУ И АДРЕСУ
-
-	bind(serverSocket, (sockaddr*)&serverAddr, sizeof(serverAddr));
-
-
-
 	//		ПРОСЛУШИВАНИЕ ПОРТА
+	//		по сути с этого момента сервер можно называть запущенным
 
 	listen(serverSocket, SOMAXCONN);
 
-	std::cout << "\nServer started...\n\n";
-
+	std::cout << "\nServer started" << std::endl << std::endl;
+	std::cout << "Address: " << ADRES << std::endl;
+	std::cout << "Port:    " << PORT << std::endl;
+	std::cout << "Link:    " << "http://" << ADRES << ':' << PORT << '/' << std::endl << std::endl;
 
 
 	//		ОБРАБОТКА ПОПЫТКИ ПОДКЛЮЧЕНИЯ
-	
+
 	std::vector<std::thread> clientThreads;
 
 	while (true)
@@ -109,7 +95,7 @@ int main()
 		clientThreads.emplace_back(std::thread(handleClient, clientSocket));
 	}
 
+
 	return 0;
 }
-
 
