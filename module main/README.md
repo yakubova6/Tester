@@ -1,5 +1,11 @@
 # Главный модуль
 
+## Сборка
+
+Для сборки программы в системе необходимо наличие утилиты CMake
+
+В терминале необходимо перейти в \module main\build\ и прописать ```cmake --build .```. Готовое приложение появится по пути: ```\module main\build\Debug\``` и будет иметь название ```ConsoleApp.exe```
+
 ## Схема работы главного модуля
 
 [<img src="https://github.com/Teru3301/Group-Project-course-1-semester-1/blob/main/module main/схема работы модуля.png"/>]()
