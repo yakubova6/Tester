@@ -4,30 +4,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tester</title>
-    <link rel="stylesheet" href="/module web/style.css">
+    <title>Главная страница</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <h2>Вход</h2>
-    <!-- Форма для входа -->
-    <form method="post" autocomplete="off" action="http://localhost:3000/login"> <!-- Action заменить на действительный!!! -->
-        <fieldset>
-            <legend>Введите данные: </legend>
-            <div>
-                <label for="user-name">Логин: </label>
-                <input type="text" id="user-name" name="user-name" placeholder="Введите логин" size="24" maxlength="10"required>
-            </div>
+    <div class="container">
+        <h1>Добро пожаловать!</h1>
+        <p>Приложение предназначено для проведения массовых опросов и тестирования, доступное как через веб-клиент, так и через Telegram-бота.</p>
+        <p>Для того, чтобы войти в него, нажмите кнопку ниже и используйте ваши учетные данные из внешних сервисов для аутентификации.</p>
+        <p>Мы рады видеть вас в нашем приложении!</p>
+        <button id="login">Войти</button>
+    </div>
 
-            <div>
-                <label for="user-pass">Пароль: </label>
-                <input type="password" id="user-pass" name="user-pass" placeholder="Введите пароль" size="24" minlength="8" maxlength="16" required>
-            </div>
-            <div>
-                <input type="submit" value="Войти">
-            </div>
-        </fieldset>
-    </form>
+    <script src="script.js"></script>
 </body>
 
 </html>
