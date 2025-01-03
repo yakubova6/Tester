@@ -1,26 +1,40 @@
 
 #include "handleClient.h"
+
 #include <iostream>
 #include <vector>
 #include <thread>
+#include <iomanip>
+
+#include "checkToken.h"
+
 
 void handleClient(SOCKET clientSocket) {
     // отображение нового подключения на сервере
-    std::cout << "New connection" << std::endl;
-    std::cout << "Socket: " << clientSocket << std::endl << std::endl;
+    std::cout << "New connection on socket " << clientSocket << std::endl;
 
-    // Отправка приветственного сообщения клиенту
-    std::string msg = "Welcome to the server of main module!\n";
-    int sizeMsg = msg.size();
-    send(clientSocket, (char*)&sizeMsg, sizeof(int), NULL);
-    send(clientSocket, msg.c_str(), msg.size(), NULL);
+    //  ожидается JWT токен
 
-    // тут будет код для обработки запросов клиента
+    const int msgSize = 1024;
+    char* message = new char[msgSize];;
 
-    //  ...
+    while (true)
+    {
+        recv(clientSocket, message, msgSize, NULL);
 
-    //
-
-    // Закрытие сокета клиента
-    closesocket(clientSocket);
+        std::cout << '[' << std::setfill(' ') << std::setw(7) << clientSocket << "] " << message << std::endl;
+    
+        //  попытка обработать сообщение
+        if (!CheckToken(message, msgSize))
+        {
+            // Закрытие сокета клиента
+            std::cout << '[' << std::setfill(' ') << std::setw(7) << clientSocket << "] Invalid request received. Client disconnected\n";
+            closesocket(clientSocket);
+            break;
+        }
+        else
+        {
+            std::cout << '[' << std::setfill(' ') << std::setw(7) << clientSocket << "] Request accepted. Executing request...\n";
+        }
+    }    
 }

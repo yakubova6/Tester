@@ -50,7 +50,7 @@ int main()
 	//		ОПРЕДЕЛЕНИЕ АДРЕСА
 	//		если не вызывать сервер запустится на локалхосте
 
-	//		ADRES = getLocalIPAddress();
+			ADRES = getLocalIPAddress();
 
 
 	//		ПРИСВАИВАНИЕ АДРЕСА И ПОРТА
@@ -72,9 +72,9 @@ int main()
 	listen(serverSocket, SOMAXCONN);
 
 	std::cout << "\nServer started" << std::endl << std::endl;
-	std::cout << "Address: " << ADRES << std::endl;
-	std::cout << "Port:    " << PORT << std::endl;
-	std::cout << "Link:    " << "http://" << ADRES << ':' << PORT << '/' << std::endl << std::endl;
+	std::cout << "Address - " << ADRES << std::endl;
+	std::cout << "Port    - " << PORT << std::endl;
+	std::cout << "Link    - " << "http://" << ADRES << ':' << PORT << '/' << std::endl << std::endl;
 
 
 	//		ОБРАБОТКА ПОПЫТКИ ПОДКЛЮЧЕНИЯ
@@ -95,6 +95,7 @@ int main()
 		clientThreads.emplace_back(std::thread(handleClient, clientSocket));
 	}
 
+	std::cout << "test";
 
 	return 0;
 }
