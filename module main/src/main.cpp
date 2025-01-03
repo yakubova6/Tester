@@ -50,7 +50,7 @@ int main()
 	//		ОПРЕДЕЛЕНИЕ АДРЕСА
 	//		если не вызывать сервер запустится на локалхосте
 
-			ADRES = getLocalIPAddress();
+	//		ADRES = getLocalIPAddress();
 
 
 	//		ПРИСВАИВАНИЕ АДРЕСА И ПОРТА
