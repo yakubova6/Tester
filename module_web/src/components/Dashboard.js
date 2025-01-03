@@ -1,14 +1,13 @@
-// src/components/Dashboard.js
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import ErrorPage from './ErrorPage'; // Импортируем компонент страницы ошибки
+import ErrorPage from './errors/ErrorPage';
 import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
     const [userData, setUserData] = useState(null);
-    const [error, setError] = useState(false); // Состояние для отслеживания ошибки
-    const [loading, setLoading] = useState(true); // Состояние загрузки
-    const navigate = useNavigate(); // Хук для навигации
+    const [error, setError] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const getSessionToken = () => {
@@ -20,11 +19,11 @@ const Dashboard = () => {
 
         if (!sessionToken) {
             console.error('Токен не найден');
-            navigate('/login'); // Перенаправляем на страницу логина, если токен не найден
+            navigate('/unauthorized');
             return;
         }
 
-        setLoading(true); // Начинаем загрузку
+        setLoading(true);
         axios.get('/api/user-data', { headers: { Authorization: `Bearer ${sessionToken}` } })
             .then(response => {
                 if (response.status === 200) {
@@ -35,24 +34,37 @@ const Dashboard = () => {
             })
             .catch(err => {
                 console.error('Ошибка при получении данных пользователя:', err);
-                if (err.response && err.response.status === 401) {
-                    navigate('/login');
+                if (err.response) {
+                    if (err.response.status === 401) {
+                        // Токен истёк или недействителен
+                        navigate('/unauthorized');
+                    } else if (err.response.status === 403) {
+                        // Доступ запрещён
+                        navigate('/forbidden');
+                    } else {
+                        setError(true);
+                    }
                 } else {
-                    setError(true); // Устанавливаем ошибку при получении данных
+                    setError(true);
                 }
             })
             .finally(() => {
-                setLoading(false); // Завершаем загрузку
+                setLoading(false);
             });
-    }, [navigate]); // Добавляем navigate в зависимости
+    }, [navigate]);
 
-    if (loading) return <div>Загрузка...</div>; // Показываем индикатор загрузки
-    if (error) return <ErrorPage />; // Если ошибка, отображаем ErrorPage
+    if (loading) return <div>Загрузка...</div>;
+    if (error) return <ErrorPage />;
+
+    const handleLogout = () => {
+        navigate('/logout'); // Переход на страницу выхода
+    };
 
     return (
         <div>
             <h2>Личный кабинет</h2>
             <p>Имя: {userData.name}</p>
+            <button onClick={handleLogout}>Выйти</button>
             {/* Отображение других данных пользователя */}
         </div>
     );

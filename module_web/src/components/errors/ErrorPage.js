@@ -6,7 +6,7 @@ const ErrorPage = () => {
     const navigate = useNavigate();
 
     const handleGoHome = () => {
-        navigate('/'); // Перенаправление на главную страницу
+        navigate('/');
     };
 
     return (
