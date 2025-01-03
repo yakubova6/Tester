@@ -8,5 +8,12 @@
 
 #include <winsock2.h>
 #include <string>
+#include <iostream>
+#include <vector>
+#include <thread>
+
+#include "checkToken.h"
+
+#include "simpleFunctions.h"
 
 void handleClient(SOCKET clientSocket);

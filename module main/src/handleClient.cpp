@@ -1,13 +1,6 @@
 
+
 #include "handleClient.h"
-
-#include <iostream>
-#include <vector>
-#include <thread>
-#include <iomanip>
-
-#include "checkToken.h"
-
 
 void handleClient(SOCKET clientSocket) {
     // отображение нового подключения на сервере
@@ -16,25 +9,62 @@ void handleClient(SOCKET clientSocket) {
     //  ожидается JWT токен
 
     const int msgSize = 1024;
-    char* message = new char[msgSize];;
+    char* message = new char[msgSize];
 
     while (true)
     {
-        recv(clientSocket, message, msgSize, NULL);
+        int bytesReceived = recv(clientSocket, message, msgSize, NULL);
 
-        std::cout << '[' << std::setfill(' ') << std::setw(7) << clientSocket << "] " << message << std::endl;
-    
-        //  попытка обработать сообщение
-        if (!CheckToken(message, msgSize))
-        {
-            // Закрытие сокета клиента
-            std::cout << '[' << std::setfill(' ') << std::setw(7) << clientSocket << "] Invalid request received. Client disconnected\n";
-            closesocket(clientSocket);
+        if (bytesReceived == 0 || bytesReceived == -1) {
+            beautyPrint(clientSocket, "Client has disconnected or a connection error has occurred.");
             break;
         }
-        else
+        beautyPrint(clientSocket, "Message : " +  std::string(message));
+    
+        switch (CheckToken(clientSocket, message, msgSize))
         {
-            std::cout << '[' << std::setfill(' ') << std::setw(7) << clientSocket << "] Request accepted. Executing request...\n";
+        case Resource::Users:
+            beautyPrint(clientSocket, "Resource: Users");
+            break;
+
+        case Resource::Discipline:
+            beautyPrint(clientSocket, "Resource: Discipline");
+            break;
+
+        case Resource::Questions:
+            beautyPrint(clientSocket, "Resource: Questions");
+            break;
+
+        case Resource::Tests:
+            beautyPrint(clientSocket, "Resource: Tests");
+            break;
+
+        case Resource::Attempt:
+            beautyPrint(clientSocket, "Resource: Attempt");
+            break;
+
+        case Resource::Answers:
+            beautyPrint(clientSocket, "Resource: Answers");
+            break;
+        
+        case Resource::Error:
+            beautyPrint(clientSocket, "Resource: Error");
+
+            const char* httpResponse = 
+            "HTTP/1.1 403 Forbidden\r\n"
+            "Content-Type: text/plain\r\n"
+            "Content-Length: 13\r\n"
+            "\r\n"
+            "Access Denied";
+    
+            beautyPrint(clientSocket, "Send code 403");
+            send(clientSocket, httpResponse, strlen(httpResponse), 0);
+
+            closesocket(clientSocket);
+            beautyPrint(clientSocket, "Socket closed.");
+            break;
         }
     }    
 }
+
+

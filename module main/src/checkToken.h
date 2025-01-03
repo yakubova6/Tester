@@ -1,16 +1,23 @@
 
 #pragma once
 
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#pragma comment(lib, "ws2_32.lib")
+
+#include <winsock2.h>
 #include <iostream>
 #include <string>
 #include <chrono>
+#include "simpleFunctions.h"
 
-bool CheckToken(char* message, int msgSize)
-{
-    std::string secret = "key";
+enum class Resource {
+    Users,
+    Discipline,
+    Questions,
+    Tests,
+    Attempt,
+    Answers,
+    Error
+};
 
-    if (message[0] != 'c')
-        return false;
-    else
-        return true;
-}
+Resource CheckToken(SOCKET clientSocket, char* message, int msgSize);
