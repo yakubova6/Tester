@@ -14,7 +14,7 @@ const Dashboard = () => {
             const sessionTokenRow = document.cookie.split('; ').find(row => row.startsWith('session_token='));
             return sessionTokenRow ? sessionTokenRow.split('=')[1] : null;
         };
-
+        console.log('Куки:', document.cookie);
         const sessionToken = getSessionToken();
 
         if (!sessionToken) {
@@ -23,9 +23,11 @@ const Dashboard = () => {
             return;
         }
 
+        console.log('Найден токен:', sessionToken); // Логируем токен
         setLoading(true);
         axios.get('/api/user-data', { headers: { Authorization: `Bearer ${sessionToken}` } })
             .then(response => {
+                console.log('Ответ от /api/user-data:', response.data); // Логируем ответ
                 if (response.status === 200) {
                     setUserData(response.data);
                 } else {
@@ -35,11 +37,10 @@ const Dashboard = () => {
             .catch(err => {
                 console.error('Ошибка при получении данных пользователя:', err);
                 if (err.response) {
+                    console.log('Статус ответа:', err.response.status); // Логируем статус ответа
                     if (err.response.status === 401) {
-                        // Токен истёк или недействителен
                         navigate('/unauthorized');
                     } else if (err.response.status === 403) {
-                        // Доступ запрещён
                         navigate('/forbidden');
                     } else {
                         setError(true);
@@ -65,7 +66,6 @@ const Dashboard = () => {
             <h2>Личный кабинет</h2>
             <p>Имя: {userData.name}</p>
             <button onClick={handleLogout}>Выйти</button>
-            {/* Отображение других данных пользователя */}
         </div>
     );
 };
