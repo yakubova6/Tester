@@ -2,14 +2,20 @@
 
 #include "checkToken.h"
 
-Resource CheckToken(SOCKET clientSocket, char* message, int msgSize)
+Action CheckToken(SOCKET clientSocket, char* message, int msgSize)
 {
     std::string secret = "key";
 
     beautyPrint(clientSocket, "Find token...");
+    std::string token = findToken(message);
 
+    if (token == "")
+    {
+        beautyPrint(clientSocket, "Token not found.");
+        return Action::Error401;
+    }
+    
+    beautyPrint(clientSocket, "Token: " + token);
 
-    beautyPrint(clientSocket, "Token not found.");
-
-    return Resource::Error;
+    return Action::Error403;
 }

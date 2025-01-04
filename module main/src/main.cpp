@@ -2,18 +2,18 @@
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #pragma comment(lib, "ws2_32.lib")
 
+#include "handleClient.h"	//		работа с клиентом
+#include "getAddress.h"		//		получение айпи устройства в локальной сети
+
 #include <winsock2.h>
 #include <vector>
 #include <string>
 #include <thread>
 #include <iostream>
 
-#include "handleClient.h"	//		работа с клиентом
-#include "getAddress.h"		//		получение айпи устройства в локальной сети
-
-
 const char* ADRES = "127.0.0.1";	//	локалхост в коде меняется на текущий адрес устройства в локальной сети (можно будет подключиться с другого устройства)
 #define PORT  1111
+
 
 
 int main()
