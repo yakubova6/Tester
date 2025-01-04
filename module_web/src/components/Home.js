@@ -26,9 +26,8 @@ const Home = ({ userStatus }) => {
             {userStatus === 'authorized' && (
                 <>
                     <p>Вы авторизованы!</p>
-                    <a href="/dashboard">Перейти в личный кабинет</a>
-                    <br />
-                    <a href="/logout">Выйти</a>
+                    <a href="/dashboard" className="auth-button">Перейти в личный кабинет</a>
+                    <a href="/logout" className="auth-button">Выйти</a>
                 </>
             )}
         </div>
