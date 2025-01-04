@@ -23,7 +23,7 @@ const CodeAuth = () => {
         <div>
             <input 
                 type="text" 
-                className="input-code"  // Используем класс input-code
+                className="input-code"  
                 placeholder="Введите код" 
                 value={code} 
                 onChange={(e) => setCode(e.target.value)} 
