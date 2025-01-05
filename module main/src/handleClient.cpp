@@ -23,33 +23,28 @@ void handleClient(SOCKET clientSocket) {
     
         switch (CheckToken(clientSocket, message, msgSize))
         {
-        case Resource::Users:
-            beautyPrint(clientSocket, "Resource: Users");
+        case Action::Error401:
+            beautyPrint(clientSocket, "Resource: Error401");
+{
+            const char* httpResponse = 
+            "HTTP/1.1 401 Forbidden\r\n"
+            "Content-Type: text/plain\r\n"
+            "Content-Length: 13\r\n"
+            "\r\n"
+            "Access Denied";
+    
+            beautyPrint(clientSocket, "Send code 401");
+            send(clientSocket, httpResponse, strlen(httpResponse), 0);
+}
+
+            closesocket(clientSocket);
+            beautyPrint(clientSocket, "Socket closed.");
             break;
 
-        case Resource::Discipline:
-            beautyPrint(clientSocket, "Resource: Discipline");
-            break;
 
-        case Resource::Questions:
-            beautyPrint(clientSocket, "Resource: Questions");
-            break;
-
-        case Resource::Tests:
-            beautyPrint(clientSocket, "Resource: Tests");
-            break;
-
-        case Resource::Attempt:
-            beautyPrint(clientSocket, "Resource: Attempt");
-            break;
-
-        case Resource::Answers:
-            beautyPrint(clientSocket, "Resource: Answers");
-            break;
-        
-        case Resource::Error:
-            beautyPrint(clientSocket, "Resource: Error");
-
+        case Action::Error403:
+            beautyPrint(clientSocket, "Resource: Error403");
+{
             const char* httpResponse = 
             "HTTP/1.1 403 Forbidden\r\n"
             "Content-Type: text/plain\r\n"
@@ -59,6 +54,7 @@ void handleClient(SOCKET clientSocket) {
     
             beautyPrint(clientSocket, "Send code 403");
             send(clientSocket, httpResponse, strlen(httpResponse), 0);
+}
 
             closesocket(clientSocket);
             beautyPrint(clientSocket, "Socket closed.");
