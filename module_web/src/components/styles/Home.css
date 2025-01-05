@@ -33,78 +33,40 @@ h2 {
     margin: 20px 0; 
 }
 
-/* Социальные кнопки */
-.social-button {
+/* Кнопка "Войти" */
+.login-button {
     display: flex; 
     align-items: center; 
     justify-content: center; 
-    margin: 5px 0; 
+    margin: 20px 0; 
     padding: 10px 15px;
-    background-color: #ffffff; 
-    border: 1px solid #31649b; 
+    background-color: #31649b; 
+    border: none; 
     border-radius: 5px;
-    color: #31649b; 
+    color: #ffffff; 
     font-size: 1rem;
     text-decoration: none;
-    transition: background-color 0.3s, color 0.3s, transform 0.2s;
+    transition: background-color 0.3s, transform 0.2s;
     width: 100%; 
     box-sizing: border-box;
+    cursor: pointer;
 }
 
-.social-button:hover {
-    background-color: #31649b; 
-    color: #ffffff;
+.login-button:hover {
+    background-color: #2e5e92; 
     transform: translateY(-2px); 
 }
 
-/* Стили для ввода кода */
-.input-code {
-    width: 100%; 
-    padding: 10px; 
-    border: 1px solid #31649b; 
-    border-radius: 5px; 
-    font-size: 16px; 
-    box-sizing: border-box; 
-    margin-top: 10px; 
-    margin-bottom: 20px; 
-    transition: border-color 0.3s; 
+/* Описание приложения */
+.description {
+    color: #666;
+    font-size: 1rem;
+    margin-bottom: 20px;
 }
 
-.input-code:focus {
-    outline: none; 
-    border-color: #2e5e92; 
-}
-
-/* Стили для текста регистрации */
-.registration-message {
-    margin-top: 20px; 
-    font-size: 0.9rem; 
-    color: #666; 
-}
-
-.registration-message a {
-    color: #31649b; 
-    text-decoration: none; 
-}
-
-.registration-message a:hover {
-    text-decoration: underline; 
-}
-
-/* Стили для поля ввода кода */
-.input-code {
-    width: 100%; 
-    padding: 10px; 
-    border: 1px solid #31649b; 
-    border-radius: 5px; 
-    font-size: 16px; 
-    box-sizing: border-box; 
-    margin-top: 10px; 
-    margin-bottom: 20px; 
-    transition: border-color 0.3s; 
-}
-
-.input-code:focus {
-    outline: none; 
-    border-color: #2e5e92; 
+.welcome-gif {
+    width: 40px;
+    height: auto; 
+    margin-right: 15px; 
+    vertical-align: middle; 
 }

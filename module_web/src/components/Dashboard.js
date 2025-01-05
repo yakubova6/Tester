@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import ErrorPage from './errors/ErrorPage';
 import { useNavigate } from 'react-router-dom';
+import './styles/Dashboard.css'; 
 
 const Dashboard = () => {
     const [userData, setUserData] = useState(null);
@@ -10,62 +11,40 @@ const Dashboard = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const getSessionToken = () => {
-            const sessionTokenRow = document.cookie.split('; ').find(row => row.startsWith('session_token='));
-            return sessionTokenRow ? sessionTokenRow.split('=')[1] : null;
+        const checkSession = async () => {
+            try {
+                const sessionResponse = await axios.get('http://localhost:5000/api/session', { withCredentials: true });
+                if (sessionResponse.data.status === 'authorized') {
+                    const userResponse = await axios.get('http://localhost:5000/api/user-data', { withCredentials: true });
+                    setUserData(userResponse.data);
+                } else {
+                    navigate('/'); // Перенаправляем на домашнюю страницу
+                }
+            } catch (err) {
+                console.error('Ошибка проверки сессии:', err);
+                setError(true); // Устанавливаем флаг ошибки
+            } finally {
+                setLoading(false); // Устанавливаем состояние загрузки в false
+            }
         };
-        console.log('Куки:', document.cookie);
-        const sessionToken = getSessionToken();
 
-        if (!sessionToken) {
-            console.error('Токен не найден');
-            navigate('/unauthorized');
-            return;
-        }
-
-        console.log('Найден токен:', sessionToken); // Логируем токен
-        setLoading(true);
-        axios.get('/api/user-data', { headers: { Authorization: `Bearer ${sessionToken}` } })
-            .then(response => {
-                console.log('Ответ от /api/user-data:', response.data); // Логируем ответ
-                if (response.status === 200) {
-                    setUserData(response.data);
-                } else {
-                    throw new Error('Не удалось получить данные пользователя');
-                }
-            })
-            .catch(err => {
-                console.error('Ошибка при получении данных пользователя:', err);
-                if (err.response) {
-                    console.log('Статус ответа:', err.response.status); // Логируем статус ответа
-                    if (err.response.status === 401) {
-                        navigate('/unauthorized');
-                    } else if (err.response.status === 403) {
-                        navigate('/forbidden');
-                    } else {
-                        setError(true);
-                    }
-                } else {
-                    setError(true);
-                }
-            })
-            .finally(() => {
-                setLoading(false);
-            });
+        checkSession();
     }, [navigate]);
 
     if (loading) return <div>Загрузка...</div>;
     if (error) return <ErrorPage />;
 
-    const handleLogout = () => {
-        navigate('/logout'); // Переход на страницу выхода
-    };
-
     return (
-        <div>
+        <div className="dashboard-container">
             <h2>Личный кабинет</h2>
-            <p>Имя: {userData.name}</p>
-            <button onClick={handleLogout}>Выйти</button>
+            {userData ? (
+                <>
+                    <p className="dashboard-text">Имя: {userData.name}</p>
+                    <button className="logout-button" onClick={() => navigate('/logout')}>Выйти</button>
+                </>
+            ) : (
+                <p className="dashboard-text">Данные пользователя не загружены.</p>
+            )}
         </div>
     );
 };

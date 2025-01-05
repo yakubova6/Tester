@@ -6,15 +6,16 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const path = require('path');
+require('dotenv').config();
 
 const app = express();
 const port = 5000;
 
 // Middleware
 app.use(cors({
-    origin: 'http://localhost:3000', 
-    methods: ['GET', 'POST'], 
-    credentials: true 
+    origin: 'http://localhost:3000',
+    methods: ['GET', 'POST'],
+    credentials: true
 }));
 app.use(bodyParser.json());
 app.use(cookieParser());
@@ -32,48 +33,103 @@ redisClient.connect().then(() => {
     console.error('Failed to connect to Redis:', err);
 });
 
-// Секретный ключ для подписи токенов
-const SECRET_KEY = 'your-secret-key'; // Замените на безопасный ключ
+// Убедитесь, что секретный ключ загружен из переменных окружения
+const SECRET_KEY = process.env.SECRET_KEY;
+
+if (!SECRET_KEY) {
+    console.error('SECRET_KEY is not defined in the environment variables');
+    process.exit(1); // Завершить процесс, если SECRET_KEY не задан
+}
+
+// Middleware для проверки JWT токена доступа
+const verifyToken = (req, res, next) => {
+    const token = req.cookies.session_token;
+    console.log('Checking token:', token);
+
+    if (!token) {
+        console.log('No token found');
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    jwt.verify(token, SECRET_KEY, (err, decoded) => {
+        if (err) {
+            console.log('Token verification failed:', err);
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+        req.user = decoded; // Сохраняем данные пользователя в объекте запроса
+        next();
+    });
+};
+
+// Обработка ошибок
+const handleError = (res, error, defaultMessage = 'Internal Server Error') => {
+    console.error(error);
+    res.status(500).json({ error: defaultMessage });
+};
 
 // API маршруты
 
+// Обработка колбэка GitHub
 app.post('/api/auth/callback', async (req, res) => {
-    console.log('Полученные параметры на сервере:', req.body);
     const { code, state } = req.body;
 
-    // Проверьте, что код и состояние не равны null
     if (!code || !state) {
-        console.error('Отсутствуют параметры code или state');
         return res.status(400).json({ error: 'Missing required parameters' });
     }
 
     try {
         // Обмен кода на токен доступа
         const response = await axios.post('https://github.com/login/oauth/access_token', {
-            client_id: 'Ov23libRIJj8xTzQLJsw', // Ваш clientId
-            client_secret: '03808686e40b18279bc7f37b9bdf57c1335625a2', // Ваш clientSecret
-            code: code,
-            state: state,
+            client_id: process.env.GITHUB_CLIENT_ID,
+            client_secret: process.env.GITHUB_CLIENT_SECRET,
+            code,
+            state,
         }, { headers: { Accept: 'application/json' } });
 
         const accessToken = response.data.access_token;
-        const generatedToken = jwt.sign({ accessToken }, SECRET_KEY, { expiresIn: '1h' });
+        if (!accessToken) {
+            return res.status(400).json({ error: 'Access token not received from GitHub.' });
+        }
+
+        const generatedToken = jwt.sign({ accessToken }, SECRET_KEY, { expiresIn: '12h' });
 
         // Сохраните токен в Redis
-        await redisClient.set(generatedToken, JSON.stringify({ accessToken }), 'EX', 3600); // 1 час
-        console.log('Кука session_token установлена:', generatedToken);
-
-        res.cookie('session_token', generatedToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
-        console.log('Кука session_token установлена:', generatedToken);
+        await redisClient.set(generatedToken, JSON.stringify({ accessToken, status: 'authorized' }), 'EX', 43200); // 12 часов
+        console.log('Сохраняю в Redis:', generatedToken, { accessToken, status: 'authorized' });
+        
+        // Установка куки с токеном сессии
+        res.cookie('session_token', generatedToken, { httpOnly: true, secure: false, sameSite: 'Lax' });
+        console.log('Устанавливаю куку session_token:', generatedToken);
         res.json({ sessionToken: generatedToken, status: 'authorized' });
     } catch (error) {
-        console.error('Ошибка при обработке запроса:', error);
-        if (error.response) {
-            console.error('Статус ответа:', error.response.status);
-            console.error('Данные ошибки:', error.response.data);
-        }
-        res.status(500).json({ error: 'Internal Server Error' });
+        handleError(res, error);
     }
+});
+
+// Обработка запроса на вход
+app.post('/api/login', async (req, res) => {
+    const { type } = req.body; // 'github' or 'yandex'
+
+    if (!type) {
+        return res.status(400).json({ error: 'Missing type parameter' });
+    }
+
+    // Генерация токена сессии и токена входа
+    const sessionToken = generateSessionToken(); // Ваша функция генерации токена
+    const entryToken = generateEntryToken(); // Ваша функция генерации токена входа
+
+    // Сохранение в Redis
+    await redisClient.set(sessionToken, JSON.stringify({ status: 'anonymous', entryToken }), 'EX', 3600); // 1 час
+
+    // Отправка запроса к модулю авторизации
+    const authResponse = await requestAuthorizationModule(type, entryToken);
+
+    if (authResponse.error) {
+        return res.status(403).json({ error: authResponse.error });
+    }
+
+    res.cookie('session_token', sessionToken, { httpOnly: true });
+    res.json({ message: 'Authorization initiated', sessionToken });
 });
 
 // Обработка запроса на выход
@@ -81,75 +137,54 @@ app.post('/api/logout', async (req, res) => {
     const sessionToken = req.cookies.session_token;
 
     if (!sessionToken) {
-        console.error('Токен сессии отсутствует при выходе');
         return res.status(400).json({ error: 'Session token is missing' });
     }
 
     try {
-        // Удаляем сессию из Redis
-        await redisClient.del(sessionToken);
-        res.clearCookie('session_token');
-        console.log('Пользователь вышел из системы');
+        await redisClient.del(sessionToken); // Удаление токена из Redis
+        res.clearCookie('session_token'); // Очистка куки
         res.status(200).json({ message: 'Logged out successfully' });
     } catch (error) {
-        console.error('Logout error:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
-
-app.get('/api/user-data', async (req, res) => {
-    const sessionToken = req.cookies.session_token;
-
-    if (!sessionToken) {
-        console.error('Токен сессии отсутствует');
-        return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    const data = await redisClient.get(sessionToken);
-    if (!data) {
-        console.error('Данные для токена сессии не найдены');
-        return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    const sessionData = JSON.parse(data);
-    console.log('sessionData:', sessionData); // Логируем данные сессии
-
-    try {
-        const userDataResponse = await axios.get('http://localhost:5001/api/user-data', {
-            headers: { Authorization: `Bearer ${sessionData.accessToken}` },
-        });
-        res.status(200).json(userDataResponse.data);
-    } catch (error) {
-        console.error('Ошибка при получении данных пользователя:', error);
-        if (error.response) {
-            console.error('Статус ответа от API пользователя:', error.response.status);
-            console.error('Данные ошибки:', error.response.data);
-        }
-        res.status(500).json({ error: 'Internal Server Error' });
+        handleError(res, error);
     }
 });
 
 // Обработка запроса на проверку сессии
 app.get('/api/session', async (req, res) => {
     const sessionToken = req.cookies.session_token;
+    console.log('Session token received:', sessionToken); // Логируем значение токена
 
     if (!sessionToken) {
-        console.log('Токен сессии отсутствует');
+        console.log('No session token found');
         return res.status(401).json({ status: 'unknown' });
     }
 
     try {
         const data = await redisClient.get(sessionToken);
         if (!data) {
-            console.log('Данные для токена сессии не найдены');
+            console.log('No data found in Redis for token:', sessionToken);
             return res.status(401).json({ status: 'unknown' });
         }
 
         const sessionData = JSON.parse(data);
-        res.status(200).json({ status: 'authorized' });
+        console.log('Session data:', sessionData);
+        res.status(200).json({ status: sessionData.status });
     } catch (error) {
-        console.error('Ошибка проверки сессии:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
+        handleError(res, error);
+    }
+});
+
+// Пример защищенного маршрута, который требует токен доступа
+app.get('/api/user-data', verifyToken, async (req, res) => {
+    const accessToken = req.user.accessToken;
+
+    try {
+        const userDataResponse = await axios.get('https://api.github.com/user', {
+            headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        res.status(200).json(userDataResponse.data);
+    } catch (error) {
+        handleError(res, error);
     }
 });
 
@@ -163,6 +198,5 @@ app.get('*', (req, res) => {
 
 // Запуск сервера
 app.listen(port, () => {
-    const serverUrl = `http://localhost:${port}`;
-    console.log(`Сервер запущен. Перейдите по ссылке: ${serverUrl}`);
+    console.log(`Сервер запущен. Перейдите по ссылке: http://localhost:${port}`);
 });

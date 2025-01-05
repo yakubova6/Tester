@@ -1,0 +1,72 @@
+/* Общие стили для страницы */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0; 
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.dashboard-container {
+    background-color: #ffffff; 
+    border-radius: 8px; 
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); 
+    padding: 40px;
+    text-align: left; /* Выравнивание текста по левому краю */
+    width: 100%; 
+    max-width: 600px; 
+    margin: auto; 
+    margin-top: 50px; 
+}
+
+/* Заголовок */
+h2 {
+    color: #555; 
+    margin: 20px 0; 
+    font-weight: bold; /* Жирный шрифт для заголовка */
+}
+
+/* Стили для текста пользователя */
+.dashboard-text {
+    color: #333; 
+    font-size: 1.2rem; /* Увеличенный размер шрифта */
+    margin: 20px 0; 
+    padding: 10px; /* Отступы вокруг текста */
+    background-color: #e9ecef; /* Светлый фон за текстом */
+    border-left: 4px solid #31649b; /* Левый бордер для выделения */
+    border-radius: 4px; /* Закругленные углы */
+}
+
+/* Кнопка выхода */
+.logout-button {
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    margin: 5px 0; 
+    padding: 10px 15px;
+    background-color: #ffffff; 
+    border: 1px solid #31649b; 
+    border-radius: 5px;
+    color: #31649b; 
+    font-size: 1rem;
+    text-decoration: none;
+    transition: background-color 0.3s, color 0.3s, transform 0.2s;
+    width: 100%; 
+    box-sizing: border-box;
+}
+
+.logout-button:hover {
+    background-color: #31649b; 
+    color: #ffffff;
+    transform: translateY(-2px); 
+}
+
+/* Сообщение об ошибке */
+.error-message {
+    color: red; 
+    margin-top: 20px; 
+    font-size: 0.9rem; 
+}
