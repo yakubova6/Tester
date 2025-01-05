@@ -14,36 +14,26 @@ import Tests from './components/resources/Tests';
 import Questions from './components/resources/Questions';
 import Attempts from './components/resources/Attempts';
 import Answers from './components/resources/Answers';
+import Login from './components/Login'; // Импортируем компонент Login
 
 const App = () => {
-    const [userStatus, setUserStatus] = useState('unknown');
+    const [userStatus, setUserStatus] = useState('unknown'); // Начальное состояние - неизвестно
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const sessionToken = document.cookie
-            .split('; ')
-            .find((row) => row.startsWith('session_token='))
-            ?.split('=')[1];
-
-        if (!sessionToken) {
-            setUserStatus('unknown');
-            setLoading(false);
-            return;
-        }
-
-        axios
-            .get('/api/session', {
-                headers: { Authorization: `Bearer ${sessionToken}` },
-            })
-            .then((response) => {
-                setUserStatus(response.data.status); // 'anonymous' или 'authorized'
-            })
-            .catch(() => {
+        const checkSession = async () => {
+            try {
+                const response = await axios.get('http://localhost:5000/api/session', { withCredentials: true });
+                setUserStatus(response.data.status); // 'authorized', 'anonymous', 'unknown'
+            } catch (error) {
+                console.error("Ошибка при проверке сессии:", error);
                 setUserStatus('unknown');
-            })
-            .finally(() => {
+            } finally {
                 setLoading(false);
-            });
+            }
+        };
+
+        checkSession();
     }, []);
 
     if (loading) {
@@ -54,20 +44,20 @@ const App = () => {
         <Router>
             <Routes>
                 <Route path="/" element={<Home userStatus={userStatus} />} />
-                <Route path="/dashboard" element={userStatus === 'authorized' ? <Dashboard /> : <Navigate to="/unauthorized" />} />
-                <Route path="/logout" element={<Logout all={false} setUserStatus={setUserStatus} />} />
+                <Route path="/login" element={<Login userStatus={userStatus} setUserStatus={setUserStatus} />} />
+                <Route path="/dashboard" element={userStatus === 'authorized' ? <Dashboard /> : <Navigate to="/" />} />
+                <Route path="/logout" element={<Logout setUserStatus={setUserStatus} />} />
                 <Route path="/auth/github/callback" element={<AuthCallback setUserStatus={setUserStatus} />} />
                 <Route path="/unauthorized" element={<Unauthorized />} />
                 <Route path="/forbidden" element={<Forbidden />} />
                 <Route path="/error" element={<ErrorPage />} />
 
-                {/* Все ресурсы теперь находятся в одной папке */}
-                <Route path="/users/*" element={<Users />} />
-                <Route path="/disciplines/*" element={<Disciplines />} />
-                <Route path="/tests/*" element={<Tests />} />
-                <Route path="/questions/*" element={<Questions />} />
-                <Route path="/attempts/*" element={<Attempts />} />
-                <Route path="/answers/*" element={<Answers />} />
+                <Route path="/users" element={userStatus === 'authorized' ? <Users /> : <Navigate to="/unauthorized" />} />
+                <Route path="/disciplines" element={userStatus === 'authorized' ? <Disciplines /> : <Navigate to="/unauthorized" />} />
+                <Route path="/tests" element={userStatus === 'authorized' ? <Tests /> : <Navigate to="/unauthorized" />} />
+                <Route path="/questions" element={userStatus === 'authorized' ? <Questions /> : <Navigate to="/unauthorized" />} />
+                <Route path="/attempts" element={userStatus === 'authorized' ? <Attempts /> : <Navigate to="/unauthorized" />} />
+                <Route path="/answers" element={userStatus === 'authorized' ? <Answers /> : <Navigate to="/unauthorized" />} />
 
                 <Route path="*" element={<Navigate to="/" />} />
             </Routes>
