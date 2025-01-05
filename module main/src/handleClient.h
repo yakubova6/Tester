@@ -3,8 +3,6 @@
 
 #pragma once
 
-//#include "checkToken.h"
-
 #include <jwt-cpp/jwt.h>
 #include <chrono>
 #include <string>
