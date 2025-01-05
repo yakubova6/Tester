@@ -3,7 +3,13 @@
 
 #pragma once
 
-#include "checkToken.h"
+//#include "checkToken.h"
+
+#include <jwt-cpp/jwt.h>
+#include <chrono>
+#include <string>
+#include <iostream>
+
 #include "simpleFunctions.h"
 
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
