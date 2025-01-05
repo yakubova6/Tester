@@ -44,13 +44,16 @@ if (!SECRET_KEY) {
 // Middleware для проверки JWT токена доступа
 const verifyToken = (req, res, next) => {
     const token = req.cookies.session_token;
+    console.log('Checking token:', token);
 
     if (!token) {
+        console.log('No token found');
         return res.status(401).json({ error: 'Unauthorized' });
     }
 
     jwt.verify(token, SECRET_KEY, (err, decoded) => {
         if (err) {
+            console.log('Token verification failed:', err);
             return res.status(401).json({ error: 'Unauthorized' });
         }
         req.user = decoded; // Сохраняем данные пользователя в объекте запроса
@@ -95,7 +98,8 @@ app.post('/api/auth/callback', async (req, res) => {
         console.log('Сохраняю в Redis:', generatedToken, { accessToken, status: 'authorized' });
         
         // Установка куки с токеном сессии
-        res.cookie('session_token', generatedToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'None' });
+        res.cookie('session_token', generatedToken, { httpOnly: true, secure: false, sameSite: 'Lax' });
+        console.log('Устанавливаю куку session_token:', generatedToken);
         res.json({ sessionToken: generatedToken, status: 'authorized' });
     } catch (error) {
         handleError(res, error);
@@ -148,18 +152,22 @@ app.post('/api/logout', async (req, res) => {
 // Обработка запроса на проверку сессии
 app.get('/api/session', async (req, res) => {
     const sessionToken = req.cookies.session_token;
+    console.log('Session token received:', sessionToken); // Логируем значение токена
 
     if (!sessionToken) {
+        console.log('No session token found');
         return res.status(401).json({ status: 'unknown' });
     }
 
     try {
         const data = await redisClient.get(sessionToken);
         if (!data) {
+            console.log('No data found in Redis for token:', sessionToken);
             return res.status(401).json({ status: 'unknown' });
         }
 
         const sessionData = JSON.parse(data);
+        console.log('Session data:', sessionData);
         res.status(200).json({ status: sessionData.status });
     } catch (error) {
         handleError(res, error);
