@@ -63,3 +63,10 @@ h2 {
     font-size: 1rem;
     margin-bottom: 20px;
 }
+
+.welcome-gif {
+    width: 40px;
+    height: auto; 
+    margin-right: 15px; 
+    vertical-align: middle; 
+}
