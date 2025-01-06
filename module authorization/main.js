@@ -10,9 +10,9 @@ const port = 3000;
 const CLIENT_ID = "9bdb9a05b73646f580fe3b12e35b1825";  // Замените на ваш client_id Яндекса
 const CLIENT_SECRET = "d7ee049d87e3461baadfd34deebd4ebc";  // Замените на ваш client_secret Яндекса
 const REDIRECT_URI = "http://localhost:3000/callback";
-const MONGO_URI = "mongodb://localhost:27017";  // Подключение к базе данных MongoDB
+const MONGO_URI = "mongodb://localhost:27018";  // Подключение к базе данных Mongo D B 
 
-const authRequests = {};  // Словарь для хранения информации о запросах
+const authRequests = {}; 
 
 const generateAuthorizationUrl = (token) => {
   return `https://oauth.yandex.ru/authorize?response_type=code&client_id=${CLIENT_ID}&state=${token}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
