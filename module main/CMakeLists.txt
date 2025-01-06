@@ -22,7 +22,6 @@ add_executable(main_server
   src/main.cpp
   src/handleClient.cpp
   src/getAddress.cpp
-  src/checkToken.cpp
 )
 
 # Привязываем библиотеки
