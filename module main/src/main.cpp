@@ -1,102 +1,67 @@
 
-#define _WINSOCK_DEPRECATED_NO_WARNINGS
-#pragma comment(lib, "ws2_32.lib")
+//  вот почему я не изучил как вообще можно работать с этим?
+//  теперь приходится переписывать весь код с нуля...
+//  сейчас 1:40. чувствую это будет весёлая ночка
 
-#include "handleClient.h"	//		работа с клиентом
-#include "getAddress.h"		//		получение айпи устройства в локальной сети
-
-#include <winsock2.h>
-#include <vector>
+#define CPPHTTPLIB_OPENSSL_SUPPORT
+#include <httplib.h>
 #include <string>
-#include <thread>
 #include <iostream>
 
-const char* ADRES = "127.0.0.1";	//	локалхост в коде меняется на текущий адрес устройства в локальной сети (можно будет подключиться с другого устройства)
-#define PORT  1111
+#include "handlerRequest.h"
 
 
-
-int main()
+int main ()
 {
-	//		ЗАГРУЗКА СЕТЕВОЙ БИБЛИОТЕКИ
+    httplib::Server server;
 
-	std::cout << "Load lib...       ";
+//      пользователи
+    server.Get("/api/db/users", GetUserList);                                   //  Посмотреть список пользователей
+    server.Get("/api/db/users/(\\d+)", GetUserNamea);                            //  Посмотреть информацию о пользователе (ФИО)
+    server.Put("/api/db/users/(\\d+)", SetUserName);                            //  Изменить ФИО пользователя
+    //  Посмотреть информацию о пользователе (курсы, оценки, тесты)
+    //  Посмотреть информацию о пользователе (роли)
+    //  Изменить роли пользователя
+    //  Посмотреть заблокирован ли пользователь
+    //  Заблокировать/Разблокировать пользователя
+// ..............................
 
-	WSADATA wsaData;
-	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-		std::cout << "Error.\n";
-		return 1;
-	}
-	else {
-		std::cout << "Done.\n";
-	}
+//      дисциплины
+    server.Get("/api/db/disciplines", GetDisceplines);                          //  Посмотреть список дисциплин
+    server.Get("/api/db/disciplines/(\\d+)", GetDisceplineInfo);                //  Посмотреть информацию о дисциплине (Название, Описание, ID преподавателя)
+    server.Put("/api/db/disciplines/(\\d+)", SetDisceplineInfo);                //  Изменить информацию о дисциплине (Название, Описание)
+    server.Get("/api/db/disciplines/tests/(\\d+)", GetDisceplineTestList);      //  Посмотреть информацию о дисциплине (Список тестов) по её id
+    //  Посмотреть информацию о тесте (Активный тест или нет) (id теста и дисциплины)
+    //  Активировать/Деактивировать тест (id дисциплины и теста) (id теста и дисциплины)
+    server.Post("/api/db/disciplines/tests/(\\d+)", AddDisceplineTest);         //  Добавить тест в дисциплину по её id
+    //  Удалить тест из дисциплины (id дисциплины и теста)
+    server.Get("/api/db/disciplines/users/(\\d+)", GetDisceplineUserList);      //  Посмотреть информацию о дисциплине (Список студентов)
+    //  Записать пользователя на дисциплину
+    //  Отчислить пользователя с дисциплины
+    //  Создать дисциплину
+    server.Delete("/api/db/disciplines/(\\d+)", DelDiscepline);                 //  Удалить дисциплину
+// ..............................
 
+//      тесты
+//
+//  ..............................
 
-	//		СОЗДАНИЕ СОКЕТА СЕРВЕРА
+//      вопросы
+//
+//  ..............................
 
-	std::cout << "Create socket...  ";
+//      попытки
+//
+//  ..............................
 
-	SOCKET serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (serverSocket == INVALID_SOCKET) {
-		std::cout << "Error.\n";
-		WSACleanup();
-		return 1;
-	}
-	else {
-		std::cout << "Done.\n";
-	}
-
-
-	//		ОПРЕДЕЛЕНИЕ АДРЕСА
-	//		если не вызывать сервер запустится на локалхосте
-
-	//		ADRES = getLocalIPAddress();
-
-
-	//		ПРИСВАИВАНИЕ АДРЕСА И ПОРТА
-
-	std::cout << "Adres and port... ";
-
-	sockaddr_in serverAddr = {};
-	serverAddr.sin_family = AF_INET;
-	serverAddr.sin_addr.s_addr = inet_addr(ADRES);
-	serverAddr.sin_port = htons(PORT);
-	bind(serverSocket, (sockaddr*)&serverAddr, sizeof(serverAddr));
-
-	std::cout << "Done.\n";
+//      ответы
+//
+//  ..............................
 
 
-	//		ПРОСЛУШИВАНИЕ ПОРТА
-	//		по сути с этого момента сервер можно называть запущенным
+    std::cout << "Server started at http://127.0.0.1:1111/" << std::endl;
+    server.listen("127.0.0.1", 1111);
+    std::cout << "Server was stoped." << std::endl;
 
-	listen(serverSocket, SOMAXCONN);
-
-	std::cout << "\nServer started" << std::endl << std::endl;
-	std::cout << "Address - " << ADRES << std::endl;
-	std::cout << "Port    - " << PORT << std::endl;
-	std::cout << "Link    - " << "http://" << ADRES << ':' << PORT << '/' << std::endl << std::endl;
-
-
-	//		ОБРАБОТКА ПОПЫТКИ ПОДКЛЮЧЕНИЯ
-
-	std::vector<std::thread> clientThreads;
-
-	while (true)
-	{
-		sockaddr_in clientAddr;
-		int clientAddrSize = sizeof(clientAddr);
-		SOCKET clientSocket = accept(serverSocket, (sockaddr*)&clientAddr, &clientAddrSize);
-		if (clientSocket == INVALID_SOCKET) {
-			std::cerr << "Accept failed: " << WSAGetLastError() << std::endl;
-			continue;
-		}
-
-		// Запуск нового потока для обработки клиента
-		clientThreads.emplace_back(std::thread(handleClient, clientSocket));
-	}
-
-	std::cout << "test";
-
-	return 0;
+    return 0;
 }
-
