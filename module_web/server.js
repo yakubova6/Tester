@@ -72,7 +72,7 @@ const sendRequestToDBModule = async (method, url, data = {}, token) => {
     try {
         const response = await axios({
             method,
-            url: `http://localhost:5001${url}`, // URL главного модуля 
+            url: `http://localhost:1111${url}`, // URL главного модуля 
             headers: {
                 Authorization: `Bearer ${token}`, // Передаем токен
             },
@@ -96,58 +96,30 @@ app.post('/api/auth/callback', async (req, res) => {
     }
 
     try {
-        let accessToken;
-        let userInfo;
-
-        if (state.startsWith('github')) {
-            // GitHub OAuth
-            const response = await axios.post('https://github.com/login/oauth/access_token', {
-                client_id: process.env.GITHUB_CLIENT_ID,
-                client_secret: process.env.GITHUB_CLIENT_SECRET,
-                code,
-                state,
-            }, { headers: { Accept: 'application/json' } });
-
-            accessToken = response.data.access_token;
-            if (!accessToken) {
-                return res.status(400).json({ error: 'Access token not received from GitHub.' });
-            }
-
-            const userDataResponse = await axios.get('https://api.github.com/user', {
-                headers: { Authorization: `Bearer ${accessToken}` },
-            });
-            userInfo = userDataResponse.data;
-
-        } else if (state.startsWith('yandex')) {
-            // Яндекс OAuth
-            const response = await axios.post('https://oauth.yandex.ru/token', {
-                grant_type: 'authorization_code',
-                code,
-                client_id: process.env.YANDEX_CLIENT_ID,
-                client_secret: process.env.YANDEX_CLIENT_SECRET,
-            }, { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
-
-            console.log('Yandex token response:', response.data); // Логируем ответ от Яндекс
-
-            accessToken = response.data.access_token;
-            if (!accessToken) {
-                return res.status(400).json({ error: 'Access token not received from Yandex.' });
-            }
-
-            const userInfoResponse = await axios.get('https://login.yandex.ru/info', {
-                headers: { Authorization: `OAuth ${accessToken}` },
-            });
-            userInfo = userInfoResponse.data;
-
-        } else {
+        // Проверяем, что state существует в Redis
+        const stateData = await redisClient.get(state);
+        if (!stateData) {
             return res.status(400).json({ error: 'Invalid state parameter.' });
         }
-        
-        const generatedToken = jwt.sign({ accessToken, userInfo }, SECRET_KEY, { expiresIn: '12h' });
-        await redisClient.set(generatedToken, JSON.stringify({ accessToken, userInfo, status: 'authorized' }), 'EX', 43200);
 
-        res.cookie('session_token', generatedToken, { httpOnly: true, secure: false, sameSite: 'Lax' });
-        res.json({ sessionToken: generatedToken, status: 'authorized' });
+        // Парсим данные из state
+        const { provider } = JSON.parse(stateData);
+
+        // Отправляем запрос в модуль авторизации
+        const authResponse = await axios.post('http://localhost:8000/api/auth/exchange', {
+            code,
+            state: provider, // Передаем провайдера (github, yandex или code)
+        });
+
+        // Получаем ответ от модуля авторизации
+        const { sessionToken, accessToken, userInfo } = authResponse.data;
+
+        // Сохраняем данные в Redis
+        await redisClient.set(sessionToken, JSON.stringify({ accessToken, userInfo, status: 'authorized' }), 'EX', 43200);
+
+        // Устанавливаем куку и возвращаем ответ
+        res.cookie('session_token', sessionToken, { httpOnly: true, secure: false, sameSite: 'Lax' });
+        res.json({ sessionToken, status: 'authorized' });
 
     } catch (error) {
         console.error('Error in /api/auth/callback:', error.response?.data || error.message); // Логируем ошибку
@@ -219,6 +191,7 @@ app.post('/api/logout', async (req, res) => {
 });
 
 // Дисциплины
+
 app.get('/api/disciplines', verifyToken, async (req, res) => {
     try {
         const token = req.cookies.session_token;
@@ -275,6 +248,7 @@ app.delete('/api/disciplines/:id', verifyToken, async (req, res) => {
 });
 
 // Тесты
+
 app.get('/api/tests', verifyToken, async (req, res) => {
     try {
         const token = req.cookies.session_token;
@@ -331,6 +305,7 @@ app.delete('/api/tests/:id', verifyToken, async (req, res) => {
 });
 
 // Вопросы
+
 app.get('/api/questions', verifyToken, async (req, res) => {
     try {
         const token = req.cookies.session_token;
@@ -387,6 +362,7 @@ app.delete('/api/questions/:id', verifyToken, async (req, res) => {
 });
 
 // Попытки
+
 app.get('/api/attempts', verifyToken, async (req, res) => {
     try {
         const token = req.cookies.session_token;
@@ -443,6 +419,7 @@ app.delete('/api/attempts/:id', verifyToken, async (req, res) => {
 });
 
 // Ответы
+
 app.get('/api/answers', verifyToken, async (req, res) => {
     try {
         const token = req.cookies.session_token;
@@ -493,6 +470,40 @@ app.delete('/api/answers/:id', verifyToken, async (req, res) => {
         const token = req.cookies.session_token;
         await sendRequestToDBModule('DELETE', `/api/db/answers/${id}`, {}, token);
         res.status(204).send();
+    } catch (error) {
+        handleError(res, error);
+    }
+});
+
+// Маршруты для работы с пользователями
+app.get('/api/users', verifyToken, async (req, res) => {
+    try {
+        const token = req.cookies.session_token;
+        const users = await sendRequestToDBModule('GET', '/api/db/users', {}, token);
+        res.status(200).json(users);
+    } catch (error) {
+        handleError(res, error);
+    }
+});
+
+app.get('/api/users/:id', verifyToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const token = req.cookies.session_token;
+        const user = await sendRequestToDBModule('GET', `/api/db/users/${id}`, {}, token);
+        res.status(200).json(user);
+    } catch (error) {
+        handleError(res, error);
+    }
+});
+
+app.put('/api/users/:id', verifyToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { fullName } = req.body;
+        const token = req.cookies.session_token;
+        const updatedUser = await sendRequestToDBModule('PUT', `/api/db/users/${id}`, { fullName }, token);
+        res.status(200).json(updatedUser);
     } catch (error) {
         handleError(res, error);
     }
