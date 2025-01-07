@@ -8,7 +8,7 @@
 
 #include <jwt-cpp/jwt.h>
 #include <string>
-
+#include <nlohmann/json.hpp>
 
 //      пользователи
 void GetUserList(const httplib::Request& req, httplib::Response& res);              //  Посмотреть список пользователей

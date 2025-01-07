@@ -45,9 +45,14 @@ inline std::unordered_map<jwt::traits::kazuho_picojson::string_type, jwt::claim>
     std::unordered_map<jwt::traits::kazuho_picojson::string_type, jwt::claim> payload;
     std::string secret = "key";
 
-    std::cout << "Find token... ";
+    std::cout << "   Find token... ";
     std::string token = findToken(req);
 
+    if (token == "")
+    {
+        std::cout << "Token not found." << std::endl;
+        return payload;
+    }
     try {
         auto decoded_token = jwt::decode(token);
         auto verifier = jwt::verify().allow_algorithm(jwt::algorithm::hs256{ secret });
