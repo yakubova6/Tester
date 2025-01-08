@@ -349,20 +349,53 @@ void DelDiscepline(const httplib::Request& req, httplib::Response& res)
 
 
 //  Посмотреть список вопросов
-//  TODO
+void GetQuestList(const httplib::Request& req, httplib::Response& res)
+{
+    std::cout << "Get quest list:" << std::endl;
 
-//  Посмотреть информацию о вопросе
-//  TODO
+    auto permission = CheckToken(req);
+    if (Unauthorized(res, permission)) return;
+}
+
+//  Посмотреть информацию о вопросе id вопроса и id версии вопроса
+void GetQuestInfo(const httplib::Request& req, httplib::Response& res)
+{
+    std::cout << "Get quest info by id:" << std::endl;
+
+    auto permission = CheckToken(req);
+    if (Unauthorized(res, permission)) return;
+
+    std::string id1 = req.matches[1];
+    std::string id2 = req.matches[2];
+    std::cout << "idQuest: " << id1 << " idV" << id2 << std::endl;
+}
 
 //  Изменить текст вопроса/ответов (создаётся новая версия)
-//  TODO
+void SetQuestInfo(const httplib::Request& req, httplib::Response& res)
+{
+    std::cout << "Set quest info:" << std::endl;
+
+    auto permission = CheckToken(req);
+    if (Unauthorized(res, permission)) return;
+}
 
 //  Создать вопрос
-//  TODO
+void AddQuest(const httplib::Request& req, httplib::Response& res)
+{
+    std::cout << "Add quest:" << std::endl;
+
+    auto permission = CheckToken(req);
+    if (Unauthorized(res, permission)) return;
+}
 
 //  Удалить вопрос
-//  TODO
+void DelQuest(const httplib::Request& req, httplib::Response& res)
+{
+    std::cout << "Del quest:" << std::endl;
 
+    auto permission = CheckToken(req);
+    if (Unauthorized(res, permission)) return;
+}
 
 
 
@@ -372,23 +405,58 @@ void DelDiscepline(const httplib::Request& req, httplib::Response& res)
 
 
 //  Удалить вопрос из теста
-//  TODO
+void DelTestQuest(const httplib::Request& req, httplib::Response& res)
+{
+    std::cout << "Del quest from test:" << std::endl;
+
+    auto permission = CheckToken(req);
+    if (Unauthorized(res, permission)) return;
+}
 
 //  Добавить вопрос в тест
-//  TODO
+void AddTestQuest(const httplib::Request& req, httplib::Response& res)
+{
+    std::cout << "Add quest to test:" << std::endl;
+
+    auto permission = CheckToken(req);
+    if (Unauthorized(res, permission)) return;
+}
 
 //  Изменить порядок следования вопросов в тесте
-//  TODO
+void SetTestQuestSequence(const httplib::Request& req, httplib::Response& res)
+{
+    std::cout << "Set quest sequence in test:" << std::endl;
+
+    auto permission = CheckToken(req);
+    if (Unauthorized(res, permission)) return;
+}
 
 //  Посмотреть список пользователей прошедших тест
-//  TODO
+void GetQuestUsers(const httplib::Request& req, httplib::Response& res)
+{
+    std::cout << "Get quest users:" << std::endl;
+
+    auto permission = CheckToken(req);
+    if (Unauthorized(res, permission)) return;
+}
 
 //  Посмотреть оценку пользователя
-//  TODO
+void GetTestGreads(const httplib::Request& req, httplib::Response& res)
+{
+    std::cout << "Get user gread:" << std::endl;
+
+    auto permission = CheckToken(req);
+    if (Unauthorized(res, permission)) return;
+}
 
 //  Посмотреть ответы пользователя
-//  TODO
+void GetTestAnswers(const httplib::Request& req, httplib::Response& res)
+{
+    std::cout << "Get test ansvers:" << std::endl;
 
+    auto permission = CheckToken(req);
+    if (Unauthorized(res, permission)) return;
+}
 
 
 
@@ -398,17 +466,40 @@ void DelDiscepline(const httplib::Request& req, httplib::Response& res)
 
 
 //  Создать
-//  TODO
+void AddAttempt(const httplib::Request& req, httplib::Response& res)
+{
+    std::cout << "Add attempt:" << std::endl;
+
+    auto permission = CheckToken(req);
+    if (Unauthorized(res, permission)) return;
+}
 
 //  Изменить
-//  TODO
+void SetAttempt(const httplib::Request& req, httplib::Response& res)
+{
+    std::cout << "Set attempt:" << std::endl;
 
-//  Завершить попытку
-//  TODO
+    auto permission = CheckToken(req);
+    if (Unauthorized(res, permission)) return;
+}
 
-//  Посмотреть попытку
-//  TODO
+//  Завершить
+void FinAttempt(const httplib::Request& req, httplib::Response& res)
+{
+    std::cout << "Finish attempt:" << std::endl;
 
+    auto permission = CheckToken(req);
+    if (Unauthorized(res, permission)) return;
+}
+
+//  Посмотреть
+void GetAttempt(const httplib::Request& req, httplib::Response& res)
+{
+    std::cout << "Get attempt:" << std::endl;
+
+    auto permission = CheckToken(req);
+    if (Unauthorized(res, permission)) return;
+}
 
 
 
@@ -418,14 +509,38 @@ void DelDiscepline(const httplib::Request& req, httplib::Response& res)
 
 
 //  Создать
-//  TODO
+void AddAnswer(const httplib::Request& req, httplib::Response& res)
+{
+    std::cout << "Add answer:" << std::endl;
+
+    auto permission = CheckToken(req);
+    if (Unauthorized(res, permission)) return;
+}
 
 //  Посмотреть
-//  TODO
+void GetAnswer(const httplib::Request& req, httplib::Response& res)
+{
+    std::cout << "Get answer:" << std::endl;
+
+    auto permission = CheckToken(req);
+    if (Unauthorized(res, permission)) return;
+}
 
 //  Изменить
-//  TODO
+void ChangeAnswer(const httplib::Request& req, httplib::Response& res)
+{
+    std::cout << "Change answer:" << std::endl;
+
+    auto permission = CheckToken(req);
+    if (Unauthorized(res, permission)) return;
+}
 
 //  Удалить
-//  TODO
+void DelAnswer(const httplib::Request& req, httplib::Response& res)
+{
+    std::cout << "Del answer:" << std::endl;
+
+    auto permission = CheckToken(req);
+    if (Unauthorized(res, permission)) return;
+}
 

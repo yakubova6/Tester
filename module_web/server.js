@@ -190,8 +190,9 @@ app.post('/api/logout', async (req, res) => {
     }
 });
 
-// Дисциплины
+// Дисциплины 
 
+// Получить список всех дисциплин
 app.get('/api/disciplines', verifyToken, async (req, res) => {
     try {
         const token = req.cookies.session_token;
@@ -202,6 +203,7 @@ app.get('/api/disciplines', verifyToken, async (req, res) => {
     }
 });
 
+// Получить информацию о конкретной дисциплине по её ID
 app.get('/api/disciplines/:id', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
@@ -213,6 +215,7 @@ app.get('/api/disciplines/:id', verifyToken, async (req, res) => {
     }
 });
 
+// Создать новую дисциплину
 app.post('/api/disciplines', verifyToken, async (req, res) => {
     try {
         const { name, description } = req.body;
@@ -224,6 +227,7 @@ app.post('/api/disciplines', verifyToken, async (req, res) => {
     }
 });
 
+// Обновить информацию о дисциплине по её ID
 app.put('/api/disciplines/:id', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
@@ -236,6 +240,7 @@ app.put('/api/disciplines/:id', verifyToken, async (req, res) => {
     }
 });
 
+// Удалить дисциплину по её ID
 app.delete('/api/disciplines/:id', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
@@ -247,8 +252,105 @@ app.delete('/api/disciplines/:id', verifyToken, async (req, res) => {
     }
 });
 
+// Получить тесты дисциплины
+app.get('/api/disciplines/:id/tests', verifyToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const token = req.cookies.session_token;
+        const tests = await sendRequestToDBModule('GET', `/api/db/disciplines/${id}/tests`, {}, token);
+        res.status(200).json(tests);
+    } catch (error) {
+        handleError(res, error);
+    }
+});
+
+// Активировать тест
+app.put('/api/disciplines/:id/tests/:testId/activate', verifyToken, async (req, res) => {
+    try {
+        const { id, testId } = req.params;
+        const token = req.cookies.session_token;
+        const updatedTest = await sendRequestToDBModule('PUT', `/api/db/disciplines/${id}/tests/${testId}/activate`, {}, token);
+        res.status(200).json(updatedTest);
+    } catch (error) {
+        handleError(res, error);
+    }
+});
+
+// Деактивировать тест
+app.put('/api/disciplines/:id/tests/:testId/deactivate', verifyToken, async (req, res) => {
+    try {
+        const { id, testId } = req.params;
+        const token = req.cookies.session_token;
+        const updatedTest = await sendRequestToDBModule('PUT', `/api/db/disciplines/${id}/tests/${testId}/deactivate`, {}, token);
+        res.status(200).json(updatedTest);
+    } catch (error) {
+        handleError(res, error);
+    }
+});
+
+// Удалить тест из дисциплины
+app.delete('/api/disciplines/:id/tests/:testId', verifyToken, async (req, res) => {
+    try {
+        const { id, testId } = req.params;
+        const token = req.cookies.session_token;
+        await sendRequestToDBModule('DELETE', `/api/db/disciplines/${id}/tests/${testId}`, {}, token);
+        res.status(204).send();
+    } catch (error) {
+        handleError(res, error);
+    }
+});
+
+// Получить информацию о том, активен ли тест
+app.get('/api/disciplines/:id/tests/:testId/active', verifyToken, async (req, res) => {
+    try {
+        const { id, testId } = req.params;
+        const token = req.cookies.session_token;
+        const isActive = await sendRequestToDBModule('GET', `/api/db/disciplines/${id}/tests/${testId}/active`, {}, token);
+        res.status(200).json({ isActive });
+    } catch (error) {
+        handleError(res, error);
+    }
+});
+
+// Получить список пользователей дисциплины
+app.get('/api/disciplines/:id/users', verifyToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const token = req.cookies.session_token;
+        const users = await sendRequestToDBModule('GET', `/api/db/disciplines/${id}/users`, {}, token);
+        res.status(200).json(users);
+    } catch (error) {
+        handleError(res, error);
+    }
+});
+
+// Записать пользователя на дисциплину
+app.put('/api/disciplines/:id/users/:userId', verifyToken, async (req, res) => {
+    try {
+        const { id, userId } = req.params;
+        const token = req.cookies.session_token;
+        const updatedUser = await sendRequestToDBModule('PUT', `/api/db/disciplines/${id}/users/${userId}`, {}, token);
+        res.status(200).json(updatedUser);
+    } catch (error) {
+        handleError(res, error);
+    }
+});
+
+// Отчислить пользователя с дисциплины
+app.delete('/api/disciplines/:id/users/:userId', verifyToken, async (req, res) => {
+    try {
+        const { id, userId } = req.params;
+        const token = req.cookies.session_token;
+        const updatedUser = await sendRequestToDBModule('DELETE', `/api/db/disciplines/${id}/users/${userId}`, {}, token);
+        res.status(200).json(updatedUser);
+    } catch (error) {
+        handleError(res, error);
+    }
+});
+
 // Тесты
 
+// Получить список всех тестов
 app.get('/api/tests', verifyToken, async (req, res) => {
     try {
         const token = req.cookies.session_token;
@@ -259,6 +361,7 @@ app.get('/api/tests', verifyToken, async (req, res) => {
     }
 });
 
+// Получить информацию о конкретном тесте по его ID
 app.get('/api/tests/:id', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
@@ -270,6 +373,7 @@ app.get('/api/tests/:id', verifyToken, async (req, res) => {
     }
 });
 
+// Создать новый тест
 app.post('/api/tests', verifyToken, async (req, res) => {
     try {
         const { name, description, disciplineId } = req.body;
@@ -281,6 +385,7 @@ app.post('/api/tests', verifyToken, async (req, res) => {
     }
 });
 
+// Обновить информацию о тесте по его ID
 app.put('/api/tests/:id', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
@@ -293,6 +398,7 @@ app.put('/api/tests/:id', verifyToken, async (req, res) => {
     }
 });
 
+// Удалить тест по его ID
 app.delete('/api/tests/:id', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
@@ -306,6 +412,7 @@ app.delete('/api/tests/:id', verifyToken, async (req, res) => {
 
 // Вопросы
 
+// Получить список всех вопросов
 app.get('/api/questions', verifyToken, async (req, res) => {
     try {
         const token = req.cookies.session_token;
@@ -316,6 +423,7 @@ app.get('/api/questions', verifyToken, async (req, res) => {
     }
 });
 
+// Получить информацию о конкретном вопросе по его ID
 app.get('/api/questions/:id', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
@@ -327,17 +435,7 @@ app.get('/api/questions/:id', verifyToken, async (req, res) => {
     }
 });
 
-app.post('/api/questions', verifyToken, async (req, res) => {
-    try {
-        const { text, testId } = req.body;
-        const token = req.cookies.session_token;
-        const newQuestion = await sendRequestToDBModule('POST', '/api/db/questions', { text, testId }, token);
-        res.status(201).json(newQuestion);
-    } catch (error) {
-        handleError(res, error);
-    }
-});
-
+// Изменить информацию о вопросе по его ID
 app.put('/api/questions/:id', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
@@ -350,6 +448,19 @@ app.put('/api/questions/:id', verifyToken, async (req, res) => {
     }
 });
 
+// Создать новый вопрос
+app.post('/api/questions', verifyToken, async (req, res) => {
+    try {
+        const { text, testId } = req.body;
+        const token = req.cookies.session_token;
+        const newQuestion = await sendRequestToDBModule('POST', '/api/db/questions', { text, testId }, token);
+        res.status(201).json(newQuestion);
+    } catch (error) {
+        handleError(res, error);
+    }
+});
+
+// Удалить вопрос по его ID
 app.delete('/api/questions/:id', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
@@ -363,6 +474,7 @@ app.delete('/api/questions/:id', verifyToken, async (req, res) => {
 
 // Попытки
 
+// Получить список всех попыток
 app.get('/api/attempts', verifyToken, async (req, res) => {
     try {
         const token = req.cookies.session_token;
@@ -373,6 +485,7 @@ app.get('/api/attempts', verifyToken, async (req, res) => {
     }
 });
 
+// Получить информацию о конкретной попытке по её ID
 app.get('/api/attempts/:id', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
@@ -384,6 +497,7 @@ app.get('/api/attempts/:id', verifyToken, async (req, res) => {
     }
 });
 
+// Создать новую попытку
 app.post('/api/attempts', verifyToken, async (req, res) => {
     try {
         const { userId, testId, status } = req.body;
@@ -395,6 +509,7 @@ app.post('/api/attempts', verifyToken, async (req, res) => {
     }
 });
 
+// Обновить информацию о попытке по её ID
 app.put('/api/attempts/:id', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
@@ -407,6 +522,7 @@ app.put('/api/attempts/:id', verifyToken, async (req, res) => {
     }
 });
 
+// Удалить попытку по её ID
 app.delete('/api/attempts/:id', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
@@ -420,6 +536,7 @@ app.delete('/api/attempts/:id', verifyToken, async (req, res) => {
 
 // Ответы
 
+// Получить список всех ответов
 app.get('/api/answers', verifyToken, async (req, res) => {
     try {
         const token = req.cookies.session_token;
@@ -430,6 +547,7 @@ app.get('/api/answers', verifyToken, async (req, res) => {
     }
 });
 
+// Получить информацию о конкретном ответе по его ID
 app.get('/api/answers/:id', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
@@ -441,6 +559,7 @@ app.get('/api/answers/:id', verifyToken, async (req, res) => {
     }
 });
 
+// Создать новый ответ
 app.post('/api/answers', verifyToken, async (req, res) => {
     try {
         const { attemptId, questionId, value } = req.body;
@@ -452,6 +571,7 @@ app.post('/api/answers', verifyToken, async (req, res) => {
     }
 });
 
+// Обновить информацию о ответе по его ID
 app.put('/api/answers/:id', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
@@ -464,6 +584,7 @@ app.put('/api/answers/:id', verifyToken, async (req, res) => {
     }
 });
 
+// Удалить ответ по его ID
 app.delete('/api/answers/:id', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
@@ -475,7 +596,9 @@ app.delete('/api/answers/:id', verifyToken, async (req, res) => {
     }
 });
 
-// Маршруты для работы с пользователями
+// Пользователи
+
+// Получить список всех пользователей
 app.get('/api/users', verifyToken, async (req, res) => {
     try {
         const token = req.cookies.session_token;
@@ -486,23 +609,122 @@ app.get('/api/users', verifyToken, async (req, res) => {
     }
 });
 
-app.get('/api/users/:id', verifyToken, async (req, res) => {
+// Получить информацию о конкретном пользователе по его ID
+app.get('/api/users/:id/name', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
         const token = req.cookies.session_token;
-        const user = await sendRequestToDBModule('GET', `/api/db/users/${id}`, {}, token);
+        const user = await sendRequestToDBModule('GET', `/api/db/users/${id}/name`, {}, token);
         res.status(200).json(user);
     } catch (error) {
         handleError(res, error);
     }
 });
 
-app.put('/api/users/:id', verifyToken, async (req, res) => {
+// Изменить информацию о пользователе по его ID (например, ФИО)
+app.put('/api/users/:id/name', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
         const { fullName } = req.body;
         const token = req.cookies.session_token;
-        const updatedUser = await sendRequestToDBModule('PUT', `/api/db/users/${id}`, { fullName }, token);
+        const updatedUser = await sendRequestToDBModule('PUT', `/api/db/users/${id}/name`, { fullName }, token);
+        res.status(200).json(updatedUser);
+    } catch (error) {
+        handleError(res, error);
+    }
+});
+
+// Получить список курсов, на которые записан пользователь
+app.get('/api/users/:id/courses', verifyToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const token = req.cookies.session_token;
+        const courses = await sendRequestToDBModule('GET', `/api/db/users/${id}/courses`, {}, token);
+        res.status(200).json(courses);
+    } catch (error) {
+        handleError(res, error);
+    }
+});
+
+// Получить оценки пользователя по его ID
+app.get('/api/users/:id/grades', verifyToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const token = req.cookies.session_token;
+        const grades = await sendRequestToDBModule('GET', `/api/db/users/${id}/grades`, {}, token);
+        res.status(200).json(grades);
+    } catch (error) {
+        handleError(res, error);
+    }
+});
+
+// Получить тесты пользователя по его ID
+app.get('/api/users/:id/tests', verifyToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const token = req.cookies.session_token;
+        const tests = await sendRequestToDBModule('GET', `/api/db/users/${id}/tests`, {}, token);
+        res.status(200).json(tests);
+    } catch (error) {
+        handleError(res, error);
+    }
+});
+
+// Получить список ролей пользователя
+app.get('/api/users/:id/roles', verifyToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const token = req.cookies.session_token;
+        const roles = await sendRequestToDBModule('GET', `/api/db/users/${id}/roles`, {}, token);
+        res.status(200).json(roles);
+    } catch (error) {
+        handleError(res, error);
+    }
+});
+
+// Изменить роли пользователя
+app.put('/api/users/:id/roles', verifyToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { roles } = req.body;
+        const token = req.cookies.session_token;
+        const updatedRoles = await sendRequestToDBModule('PUT', `/api/db/users/${id}/roles`, { roles }, token);
+        res.status(200).json(updatedRoles);
+    } catch (error) {
+        handleError(res, error);
+    }
+});
+
+// Проверить, заблокирован ли пользователь
+app.get('/api/users/:id/block', verifyToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const token = req.cookies.session_token;
+        const isBlocked = await sendRequestToDBModule('GET', `/api/db/users/${id}/block`, {}, token);
+        res.status(200).json({ isBlocked });
+    } catch (error) {
+        handleError(res, error);
+    }
+});
+
+// Заблокировать пользователя
+app.put('/api/users/:id/block', verifyToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const token = req.cookies.session_token;
+        const updatedUser = await sendRequestToDBModule('PUT', `/api/db/users/${id}/block`, {}, token);
+        res.status(200).json(updatedUser);
+    } catch (error) {
+        handleError(res, error);
+    }
+});
+
+// Разблокировать пользователя
+app.put('/api/users/:id/unblock', verifyToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const token = req.cookies.session_token;
+        const updatedUser = await sendRequestToDBModule('PUT', `/api/db/users/${id}/unblock`, {}, token);
         res.status(200).json(updatedUser);
     } catch (error) {
         handleError(res, error);

@@ -34,47 +34,47 @@ int main ()
     server.Get("/api/db/disciplines/(\\d+)", GetDisceplineInfo);                                //  Посмотреть информацию о дисциплине (Название, Описание, ID преподавателя)
     server.Put("/api/db/disciplines/(\\d+)", SetDisceplineInfo);                                //  Изменить информацию о дисциплине (Название, Описание)
     server.Get("/api/db/disciplines/(\\d+)/tests", GetDisceplineTestList);                      //  Посмотреть информацию о дисциплине (Список тестов) по её id
-    server.Get("/api/db/disciplines/(\\d+)tests/(\\d+)/active", GetDisceplineTestActive);       //  Посмотреть информацию о тесте (Активный тест или нет) (id теста и дисциплины)
-    server.Put("/api/db/disciplines/(\\d+)tests/(\\d+)/activate", SetDisceplineTestActivate);   //  Активировать тест
-    server.Put("/api/db/disciplines/(\\d+)tests/(\\d+)/deactivate", SetDisceplineTestDeactivate);//  Деактивировать тест
-    server.Post("/api/db/disciplines/(\\d+)tests", AddDisceplineTest);                          //  Добавить тест в дисциплину по её id
+    server.Get("/api/db/disciplines/(\\d+)/tests/(\\d+)/active", GetDisceplineTestActive);      //  Посмотреть информацию о тесте (Активный тест или нет) (id теста и дисциплины)
+    server.Put("/api/db/disciplines/(\\d+)/tests/(\\d+)/activate", SetDisceplineTestActivate);  //  Активировать тест
+    server.Put("/api/db/disciplines/(\\d+)/tests/(\\d+)/deactivate", SetDisceplineTestDeactivate);//  Деактивировать тест
+    server.Post("/api/db/disciplines/(\\d+)/tests", AddDisceplineTest);                         //  Добавить тест в дисциплину по её id
     server.Delete("/api/db/disciplines/(\\d+)/tests/(\\d+)", DelDisceplineTest);                //  Удалить тест из дисциплины (id дисциплины и теста)
-    server.Get("/api/db/disciplines(\\d+)/users", GetDisceplineUserList);                       //  Посмотреть информацию о дисциплине (Список студентов)    
-    server.Put("/api/db/disciplines(\\d+)/users(\\d+)", AddDisceplineUser);                     //  Записать пользователя на дисциплину
-    server.Delete("/api/db/disciplines(\\d+)/users(\\d+)", DelDisceplineUser);                  //  Отчислить пользователя с дисциплины
+    server.Get("/api/db/disciplines/(\\d+)/users", GetDisceplineUserList);                      //  Посмотреть информацию о дисциплине (Список студентов)    
+    server.Put("/api/db/disciplines/(\\d+)/users(\\d+)", AddDisceplineUser);                    //  Записать пользователя на дисциплину
+    server.Delete("/api/db/disciplines/(\\d+)/users(\\d+)", DelDisceplineUser);                 //  Отчислить пользователя с дисциплины
     server.Post("/api/db/disciplines", AddDiscepline);                                          //  Создать дисциплину
     server.Delete("/api/db/disciplines/(\\d+)", DelDiscepline);                                 //  Удалить дисциплину
 // ..............................
 
-//      вопросы
-//  TODO                                                                        //  Посмотреть список вопросов
-//  TODO                                                                        //  Посмотреть информацию о вопросе
-//  TODO                                                                        //  Изменить текст вопроса/ответов (создаётся новая версия)
-//  TODO                                                                        //  Создать вопрос
-//  TODO                                                                        //  Удалить вопрос
+//      вопросы                                                      
+    server.Get("/api/db/quest", GetQuestList);                                  //  Посмотреть список вопросов
+    server.Get("/api/db/quest/(\\d+)/(\\d+)", GetQuestInfo);                    //  Посмотреть информацию о вопросе id вопроса и id версии вопроса
+    server.Put("/api/db/quest(\\d+)", SetQuestInfo);                            //  Изменить текст вопроса/ответов (создаётся новая версия)
+    server.Post("/api/db/quest", AddQuest);                                     //  Создать вопрос
+    server.Delete("/api/db/quest(\\d+)", DelQuest);                             //  Удалить вопрос
 //  ..............................
 
-//      тесты
-//  TODO                                                                        //  Удалить вопрос из теста
-//  TODO                                                                        //  Добавить вопрос в тест
-//  TODO                                                                        //  Изменить порядок следования вопросов в тесте
-//  TODO                                                                        //  Посмотреть список пользователей прошедших тест
-//  TODO                                                                        //  Посмотреть оценку пользователя
-//  TODO                                                                        //  Посмотреть ответы пользователя
+//      тесты 
+    server.Delete("/api/db/disciplines/(\\d+)/tests/(\\d+)/quest(\\d+)", DelTestQuest);                    //  Удалить вопрос из теста
+    server.Post("/api/db/disciplines/(\\d+)/tests/(\\d+)/quest(\\d+)", AddTestQuest);                   //  Добавить вопрос в тест
+    server.Put("/api/db/disciplines/(\\d+)/tests/(\\d+)/quest(\\d+)", SetTestQuestSequence);            //  Изменить порядок следования вопросов в тесте
+    server.Get("/api/db/disciplines/(\\d+)/tests/(\\d+)/quest(\\d+)/users", GetQuestUsers);             //  Посмотреть список пользователей прошедших тест
+    server.Get("/api/db/disciplines/(\\d+)/tests/(\\d+)/quest(\\d+)/gread/(\\d+)", GetQuestUsers);      //  Посмотреть оценку пользователя
+    server.Get("/api/db/disciplines/(\\d+)/tests/(\\d+)/quest(\\d+)/answer/(\\d+)", GetTestAnswers);    //  Посмотреть ответы пользователя
 //  ..............................
 
 //      попытки
-//  TODO                                                                        //  Создать
-//  TODO                                                                        //  Изменить
-//  TODO                                                                        //  Завершить попытку
-//  TODO                                                                        //  Посмотреть попытку
+    server.Post("/api/db/disciplines/(\\d+)/test/(\\d+)/attempt", AddAttempt);          //  Создать
+    server.Put("/api/db/disciplines/(\\d+)/test/(\\d+)/attempt", SetAttempt);           //  Изменить
+    server.Post("/api/db/disciplines/(\\d+)/test/(\\d+)/attempt/finish", FinAttempt);   //  Завершить
+    server.Get("/api/db/disciplines/(\\d+)/test/(\\d+)/attempt", GetAttempt);           //  Посмотреть
 //  ..............................
 
 //      ответы
-//  TODO                                                                        //  Создать
-//  TODO                                                                        //  Посмотреть
-//  TODO                                                                        //  Изменить
-//  TODO                                                                        //  Удалить
+    server.Post("/api/db/disciplines/(\\d+)/test/(\\d+)/quest/(\\d+)", AddAnswer);    //  Создать
+    server.Get("/api/db/disciplines/(\\d+)/test/(\\d+)/quest/(\\d+)", GetAnswer);     //  Посмотреть
+    server.Put("/api/db/disciplines/(\\d+)/test/(\\d+)/quest/(\\d+)", ChangeAnswer);          //  Изменить
+    server.Delete("/api/db/disciplines/(\\d+)/test/(\\d+)/quest/(\\d+)", DelAnswer);       //  Удалить
 //  ..............................
 
 
