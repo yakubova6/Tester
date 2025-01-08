@@ -63,20 +63,79 @@ void SetUserName(const httplib::Request& req, httplib::Response& res)
     
 }
 
-//  Посмотреть информацию о пользователе (курсы, оценки, тесты)
-//  TODO
+//  Посмотреть информацию о пользователе (курсы)
+void GetUserCourses(const httplib::Request& req, httplib::Response& res)
+{
+    std::cout << "Get user courses:" << std::endl;
+
+    auto permission = CheckToken(req);
+    if (Unauthorized(res, permission)) return;
+}
+
+//  Посмотреть информацию о пользователе (оценки)
+void GetUserGrades(const httplib::Request& req, httplib::Response& res)
+{
+    std::cout << "Get user grades:" << std::endl;
+
+    auto permission = CheckToken(req);
+    if (Unauthorized(res, permission)) return;
+}
+
+//  Посмотреть информацию о пользователе (тесты)
+void GetUserTests(const httplib::Request& req, httplib::Response& res)
+{
+    std::cout << "Get user tests:" << std::endl;
+
+    auto permission = CheckToken(req);
+    if (Unauthorized(res, permission)) return;
+}
 
 //  Посмотреть информацию о пользователе (роли)
-//  TODO
+void GetUserRoles(const httplib::Request& req, httplib::Response& res)
+{
+    std::cout << "Get user roles:" << std::endl;
+
+    auto permission = CheckToken(req);
+    if (Unauthorized(res, permission)) return;
+}
 
 //  Изменить роли пользователя
-//  TODO
+void SetUserRoles(const httplib::Request& req, httplib::Response& res)
+{
+    std::cout << "Set user roles:" << std::endl;
+
+    auto permission = CheckToken(req);
+    if (Unauthorized(res, permission)) return;
+}
 
 //  Посмотреть заблокирован ли пользователь
-//  TODO
+void GetUserBlock(const httplib::Request& req, httplib::Response& res)
+{
+    std::cout << "Get user block:" << std::endl;
 
-//  Заблокировать/Разблокировать пользователя
-//  TODO
+    auto permission = CheckToken(req);
+    if (Unauthorized(res, permission)) return;
+}
+
+//  заблокировать пользователя
+void SetUserBlock(const httplib::Request& req, httplib::Response& res)
+{
+    std::cout << "Set user block:" << std::endl;
+
+    auto permission = CheckToken(req);
+    if (Unauthorized(res, permission)) return;
+}
+
+//  разблокировать пользователя
+void SetUserUnblock(const httplib::Request& req, httplib::Response& res)
+{
+    std::cout << "Set user unblock:" << std::endl;
+
+    auto permission = CheckToken(req);
+    if (Unauthorized(res, permission)) return;
+}
+
+
 
 
 
@@ -152,10 +211,43 @@ void GetDisceplineTestList(const httplib::Request& req, httplib::Response& res)
 }
 
 //  Посмотреть информацию о тесте (Активный тест или нет)
-//  TODO
+void GetDisceplineTestActive(const httplib::Request& req, httplib::Response& res)
+{
+    std::cout << "Get discepline test active:" << std::endl;
 
-//  Активировать/Деактивировать тест
-//  TODO
+    auto permission = CheckToken(req);
+    if (Unauthorized(res, permission)) return;
+
+    std::string idDisc = req.matches[1];
+    std::string idTest = req.matches[2];
+    std::cout << "Disc: " << idDisc << " Test: " << idTest << std::endl;
+}
+
+//  Активировать тест
+void SetDisceplineTestActivate(const httplib::Request& req, httplib::Response& res)
+{
+    std::cout << "Activate discepline test:" << std::endl;
+
+    auto permission = CheckToken(req);
+    if (Unauthorized(res, permission)) return;
+
+    std::string idDisc = req.matches[1];
+    std::string idTest = req.matches[2];
+    std::cout << "Disc: " << idDisc << " Test: " << idTest << std::endl;
+}
+
+//  Деактивировать тест
+void SetDisceplineTestDeactivate(const httplib::Request& req, httplib::Response& res)
+{
+    std::cout << "Deactivate discepline test:" << std::endl;
+
+    auto permission = CheckToken(req);
+    if (Unauthorized(res, permission)) return;
+
+    std::string idDisc = req.matches[1];
+    std::string idTest = req.matches[2];
+    std::cout << "Disc: " << idDisc << " Test: " << idTest << std::endl;
+}
 
 //  Добавить тест в дисциплину по её id
 void AddDisceplineTest(const httplib::Request& req, httplib::Response& res)
@@ -170,7 +262,17 @@ void AddDisceplineTest(const httplib::Request& req, httplib::Response& res)
 }
 
 //  Удалить тест из дисциплины (id дисциплины и теста)
-//  TODO
+void DelDisceplineTest(const httplib::Request& req, httplib::Response& res)
+{
+    std::cout << "Del discepline test:" << std::endl;
+
+    auto permission = CheckToken(req);
+    if (Unauthorized(res, permission)) return;
+
+    std::string idDisc = req.matches[1];
+    std::string idTest = req.matches[2];
+    std::cout << "Disc: " << idDisc << " Test: " << idTest << std::endl;
+}
 
 //  Посмотреть информацию о дисциплине (Список студентов)
 void GetDisceplineUserList(const httplib::Request& req, httplib::Response& res)
@@ -192,13 +294,39 @@ void GetDisceplineUserList(const httplib::Request& req, httplib::Response& res)
 }  
 
 //  Записать пользователя на дисциплину
-//  TODO
+void AddDisceplineUser(const httplib::Request& req, httplib::Response& res)
+{
+    std::cout << "Add discepline test user:" << std::endl;
+
+    auto permission = CheckToken(req);
+    if (Unauthorized(res, permission)) return;
+
+    std::string idDisc = req.matches[1];
+    std::string idTest = req.matches[2];
+    std::cout << "Disc: " << idDisc << " User: " << idTest << std::endl;
+}
 
 //  Отчислить пользователя с дисциплины
-//  TODO
+void DelDisceplineUser(const httplib::Request& req, httplib::Response& res)
+{
+    std::cout << "Del discepline test user:" << std::endl;
+
+    auto permission = CheckToken(req);
+    if (Unauthorized(res, permission)) return;
+
+    std::string idDisc = req.matches[1];
+    std::string idTest = req.matches[2];
+    std::cout << "Disc: " << idDisc << " User: " << idTest << std::endl;
+}
 
 //  Создать дисциплину
-//  TODO
+void AddDiscepline(const httplib::Request& req, httplib::Response& res)
+{
+    std::cout << "Add discepline:" << std::endl;
+
+    auto permission = CheckToken(req);
+    if (Unauthorized(res, permission)) return;
+}
 
 //  Удалить дисциплину
 void DelDiscepline(const httplib::Request& req, httplib::Response& res)
@@ -211,6 +339,8 @@ void DelDiscepline(const httplib::Request& req, httplib::Response& res)
     std::string id = req.matches[1];
     std::cout << "id: " << id << std::endl;
 }
+
+
 
 
 
@@ -232,6 +362,8 @@ void DelDiscepline(const httplib::Request& req, httplib::Response& res)
 
 //  Удалить вопрос
 //  TODO
+
+
 
 
 
@@ -260,6 +392,8 @@ void DelDiscepline(const httplib::Request& req, httplib::Response& res)
 
 
 
+
+
 //      ПОПЫТКИ
 
 
@@ -274,6 +408,8 @@ void DelDiscepline(const httplib::Request& req, httplib::Response& res)
 
 //  Посмотреть попытку
 //  TODO
+
+
 
 
 

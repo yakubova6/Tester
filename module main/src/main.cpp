@@ -17,29 +17,33 @@ int main ()
 
 //      пользователи
     server.Get("/api/db/users", GetUserList);                                   //  Посмотреть список пользователей
-    server.Get("/api/db/users/(\\d+)", GetUserNamea);                           //  Посмотреть информацию о пользователе (ФИО)
-    server.Put("/api/db/users/(\\d+)", SetUserName);                            //  Изменить ФИО пользователя
-//  TODO                                                                        //  Посмотреть информацию о пользователе (курсы, оценки, тесты)
-//  TODO                                                                        //  Посмотреть информацию о пользователе (роли)
-//  TODO                                                                        //  Изменить роли пользователя
-//  TODO                                                                        //  Посмотреть заблокирован ли пользователь
-//  TODO                                                                        //  Заблокировать/Разблокировать пользователя
+    server.Get("/api/db/users/(\\d+)/name", GetUserNamea);                      //  Посмотреть информацию о пользователе (ФИО)
+    server.Put("/api/db/users/(\\d+)/name", SetUserName);                       //  Изменить ФИО пользователя
+    server.Get("/api/db/users/(\\d+)/courses", GetUserCourses);                 //  Посмотреть информацию о пользователе (курсы)
+    server.Get("/api/db/users/(\\d+)/grades", GetUserGrades);                   //  Посмотреть информацию о пользователе (оценки)
+    server.Get("/api/db/users/(\\d+)/tests", GetUserTests);                     //  Посмотреть информацию о пользователе (тесты)
+    server.Get("/api/db/users/(\\d+)/roles", GetUserRoles);                     //  Посмотреть информацию о пользователе (роли)
+    server.Put("/api/db/users/(\\d+)/roles", SetUserRoles);                     //  Изменить роли пользователя    
+    server.Get("/api/db/users/(\\d+)/block", GetUserBlock);                     //  Посмотреть заблокирован ли пользователь
+    server.Put("/api/db/users/(\\d+)/block", SetUserBlock);                     //  заблокировать пользователя
+    server.Put("/api/db/users/(\\d+)/unblock", SetUserUnblock);                 //  разблокировать пользователя
 // ..............................
 
 //      дисциплины
-    server.Get("/api/db/disciplines", GetDisceplines);                          //  Посмотреть список дисциплин
-    server.Get("/api/db/disciplines/(\\d+)", GetDisceplineInfo);                //  Посмотреть информацию о дисциплине (Название, Описание, ID преподавателя)
-    server.Put("/api/db/disciplines/(\\d+)", SetDisceplineInfo);                //  Изменить информацию о дисциплине (Название, Описание)
-    server.Get("/api/db/disciplines/tests/(\\d+)", GetDisceplineTestList);      //  Посмотреть информацию о дисциплине (Список тестов) по её id
-//  TODO                                                                        //  Посмотреть информацию о тесте (Активный тест или нет) (id теста и дисциплины)
-//  TODO                                                                        //  Активировать/Деактивировать тест (id дисциплины и теста) (id теста и дисциплины)
-    server.Post("/api/db/disciplines/tests/(\\d+)", AddDisceplineTest);         //  Добавить тест в дисциплину по её id
-//  TODO                                                                        //  Удалить тест из дисциплины (id дисциплины и теста)
-    server.Get("/api/db/disciplines/users/(\\d+)", GetDisceplineUserList);      //  Посмотреть информацию о дисциплине (Список студентов)
-//  TODO                                                                        //  Записать пользователя на дисциплину
-//  TODO                                                                        //  Отчислить пользователя с дисциплины
-//  TODO                                                                        //  Создать дисциплину
-    server.Delete("/api/db/disciplines/(\\d+)", DelDiscepline);                 //  Удалить дисциплину
+    server.Get("/api/db/disciplines", GetDisceplines);                                          //  Посмотреть список дисциплин
+    server.Get("/api/db/disciplines/(\\d+)", GetDisceplineInfo);                                //  Посмотреть информацию о дисциплине (Название, Описание, ID преподавателя)
+    server.Put("/api/db/disciplines/(\\d+)", SetDisceplineInfo);                                //  Изменить информацию о дисциплине (Название, Описание)
+    server.Get("/api/db/disciplines/(\\d+)/tests", GetDisceplineTestList);                      //  Посмотреть информацию о дисциплине (Список тестов) по её id
+    server.Get("/api/db/disciplines/(\\d+)tests/(\\d+)/active", GetDisceplineTestActive);       //  Посмотреть информацию о тесте (Активный тест или нет) (id теста и дисциплины)
+    server.Put("/api/db/disciplines/(\\d+)tests/(\\d+)/activate", SetDisceplineTestActivate);   //  Активировать тест
+    server.Put("/api/db/disciplines/(\\d+)tests/(\\d+)/deactivate", SetDisceplineTestDeactivate);//  Деактивировать тест
+    server.Post("/api/db/disciplines/(\\d+)tests", AddDisceplineTest);                          //  Добавить тест в дисциплину по её id
+    server.Delete("/api/db/disciplines/(\\d+)/tests/(\\d+)", DelDisceplineTest);                //  Удалить тест из дисциплины (id дисциплины и теста)
+    server.Get("/api/db/disciplines(\\d+)/users", GetDisceplineUserList);                       //  Посмотреть информацию о дисциплине (Список студентов)    
+    server.Put("/api/db/disciplines(\\d+)/users(\\d+)", AddDisceplineUser);                     //  Записать пользователя на дисциплину
+    server.Delete("/api/db/disciplines(\\d+)/users(\\d+)", DelDisceplineUser);                  //  Отчислить пользователя с дисциплины
+    server.Post("/api/db/disciplines", AddDiscepline);                                          //  Создать дисциплину
+    server.Delete("/api/db/disciplines/(\\d+)", DelDiscepline);                                 //  Удалить дисциплину
 // ..............................
 
 //      вопросы
