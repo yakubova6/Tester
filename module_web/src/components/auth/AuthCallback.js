@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
+// Ваш коллбэк на клиенте
 const AuthCallback = ({ setUserStatus }) => {
     const navigate = useNavigate();
 
@@ -19,20 +20,14 @@ const AuthCallback = ({ setUserStatus }) => {
 
         // Удаление сохраненного состояния
         localStorage.removeItem('auth_state');
-
+        
+        console.log('Отправка кода:', code, 'и состояния:', returnedState);
         // Отправка POST-запроса на сервер
-        axios.post('http://localhost:5000/api/auth/callback', { code, state: returnedState })
+        axios.post('/api/auth/callback', { code, state: returnedState })
             .then((response) => {
-                // Установка куки с токеном сессии
-                document.cookie = `session_token=${response.data.sessionToken}; path=/; httpOnly; secure=${process.env.NODE_ENV === 'production'}`;
-
-                // Сохранение токенов доступа и обновления в localStorage
-                localStorage.setItem('accessToken', response.data.accessToken); // Сохраните accessToken
-                localStorage.setItem('refreshToken', response.data.refreshToken); // Сохраните refreshToken
+                // Установка состояния пользователя
+                setUserStatus(response.data.status); // Устанавливаем статус пользователя на 'authorized'
                 
-                // Обновление состояния пользователя
-                setUserStatus('authorized'); // Установка статуса пользователя
-
                 // Перенаправление на страницу Dashboard
                 navigate('/dashboard');
             })
@@ -42,7 +37,7 @@ const AuthCallback = ({ setUserStatus }) => {
             });
     }, [navigate, setUserStatus]);
 
-    return <div>Обработка...</div>;
+    return null; // Или вы можете вернуть какой-то индикатор загрузки
 };
 
 export default AuthCallback;
