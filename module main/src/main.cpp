@@ -104,10 +104,10 @@ int main ()
 //      тесты 
     server.Delete("/api/db/disciplines/(\\d+)/tests/(\\d+)/quest(\\d+)", DelTestQuest);                 //  Удалить вопрос из теста
     server.Post("/api/db/disciplines/(\\d+)/tests/(\\d+)/quest(\\d+)", AddTestQuest);                   //  Добавить вопрос в тест
-    server.Put("/api/db/disciplines/(\\d+)/tests/(\\d+)/quest(\\d+)", SetTestQuestSequence);            //  Изменить порядок следования вопросов в тесте
-    server.Get("/api/db/disciplines/(\\d+)/tests/(\\d+)/quest(\\d+)/users", GetQuestUsers);             //  Посмотреть список пользователей прошедших тест
-    server.Get("/api/db/disciplines/(\\d+)/tests/(\\d+)/quest(\\d+)/gread/(\\d+)", GetQuestUsers);      //  Посмотреть оценку пользователя
-    server.Get("/api/db/disciplines/(\\d+)/tests/(\\d+)/quest(\\d+)/answer/(\\d+)", GetTestAnswers);    //  Посмотреть ответы пользователя
+    server.Put("/api/db/disciplines/(\\d+)/tests/(\\d+)/questSequence", SetTestQuestSequence);          //  Изменить порядок следования вопросов в тесте
+    server.Get("/api/db/disciplines/(\\d+)/tests/(\\d+)/users", GetQuestUsers);                         //  Посмотреть список пользователей прошедших тест
+    server.Get("/api/db/disciplines/(\\d+)/tests/(\\d+)/gread", GetQuestUsers);                  //  Посмотреть оценку пользователя
+    server.Get("/api/db/disciplines/(\\d+)/tests/(\\d+)/answer", GetTestAnswers);                //  Посмотреть ответы пользователя
 //  ..............................
 
 //      попытки

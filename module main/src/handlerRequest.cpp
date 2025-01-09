@@ -113,7 +113,7 @@ void SetUserName(const httplib::Request& req, httplib::Response& res)
     std::string last_name = body["last_name"];      //  фамилия
     std::string middle_name = body["middle_name"];  //  отчество
 
-    std::cout << "New full name: " << first_name << ' ' << last_name << ' ' << middle_name << std::endl;
+    std::cout << "   New full name: " << first_name << ' ' << last_name << ' ' << middle_name << std::endl;
 
 
     std::cout << "   End." << std::endl;
@@ -283,7 +283,7 @@ void SetUserBlock(const httplib::Request& req, httplib::Response& res)
 
     //  заглушка
     int id = std::stoi(req.matches[1]);
-    std::cout << "User " << std::to_string(id) << " banned." << std::endl; 
+    std::cout << "   User " << std::to_string(id) << " banned." << std::endl; 
 
 
     std::cout << "   End." << std::endl;
@@ -306,7 +306,7 @@ void SetUserUnblock(const httplib::Request& req, httplib::Response& res)
 
     //  заглушка
     int id = std::stoi(req.matches[1]);
-    std::cout << "User " << std::to_string(id) << " unbanned." << std::endl; 
+    std::cout << "   User " << std::to_string(id) << " unbanned." << std::endl; 
 
 
     std::cout << "   End." << std::endl;
@@ -364,7 +364,7 @@ void GetDisceplineInfo(const httplib::Request& req, httplib::Response& res)
     if (Unauthorized(res, permission)) return;
 
     std::string id = req.matches[1];
-    std::cout << "id: " << id << std::endl;
+    std::cout << "   id: " << id << std::endl;
 
     //   TODO
 
@@ -401,7 +401,7 @@ void SetDisceplineInfo(const httplib::Request& req, httplib::Response& res)
     std::string name = body["name"];
     std::string description = body["description"];
 
-    std::cout << "New name and description: " << name << ' ' << description << std::endl;
+    std::cout << "   New name and description: " << name << ' ' << description << std::endl;
 
 
     std::cout << "   End." << std::endl;
@@ -422,7 +422,7 @@ void GetDisceplineTestList(const httplib::Request& req, httplib::Response& res)
     if (Unauthorized(res, permission)) return;
 
     std::string id = req.matches[1];
-    std::cout << "id: " << id << std::endl;
+    std::cout << "   id: " << id << std::endl;
 
     //   TODO
 
@@ -457,7 +457,7 @@ void GetDisceplineTestActive(const httplib::Request& req, httplib::Response& res
     //  заглушка
     std::string idDisc = req.matches[1];
     std::string idTest = req.matches[2];
-    std::cout << "Disc: " << idDisc << " Test: " << idTest << std::endl;
+    std::cout << "   Disc: " << idDisc << " Test: " << idTest << std::endl;
 
     nlohmann::json jsonRes;
     jsonRes["active"] = false;
@@ -487,7 +487,7 @@ void SetDisceplineTestActivate(const httplib::Request& req, httplib::Response& r
     //  заглушка
     std::string idDisc = req.matches[1];
     std::string idTest = req.matches[2];
-    std::cout << "Active Disc: " << idDisc << " Test: " << idTest << std::endl;
+    std::cout << "   Active Disc: " << idDisc << " Test: " << idTest << std::endl;
 
 
     std::cout << "   End." << std::endl;
@@ -512,7 +512,7 @@ void SetDisceplineTestDeactivate(const httplib::Request& req, httplib::Response&
     //  заглушка
     std::string idDisc = req.matches[1];
     std::string idTest = req.matches[2];
-    std::cout << "Deactive Disc: " << idDisc << " Test: " << idTest << std::endl;
+    std::cout << "   Deactive Disc: " << idDisc << " Test: " << idTest << std::endl;
 
 
     std::cout << "   End." << std::endl;
@@ -536,7 +536,7 @@ void AddDisceplineTest(const httplib::Request& req, httplib::Response& res)
 
     //  заглушка
     std::string id = req.matches[1];
-    std::cout << "id: " << id << std::endl;
+    std::cout << "   id: " << id << std::endl;
 
     nlohmann::json body = nlohmann::json::parse(req.body);
     std::string name = body["name"];
@@ -544,7 +544,7 @@ void AddDisceplineTest(const httplib::Request& req, httplib::Response& res)
     nlohmann::json jsonRes;
     jsonRes["id"] = 1234;
 
-    std::cout << "Add new test \"" << name << "\" id: " << 1234 << std::endl;
+    std::cout << "   Add new test \"" << name << "\" id: " << 1234 << std::endl;
     res.set_content(jsonRes.dump(), "application/json");
 
 
@@ -569,7 +569,7 @@ void DelDisceplineTest(const httplib::Request& req, httplib::Response& res)
     //  заглушка
     std::string idDisc = req.matches[1];
     std::string idTest = req.matches[2];
-    std::cout << "Disc: " << idDisc << " Test: " << idTest << std::endl;
+    std::cout << "   Disc: " << idDisc << " Test: " << idTest << std::endl;
 
 
     std::cout << "   End." << std::endl;
@@ -622,7 +622,7 @@ void AddDisceplineUser(const httplib::Request& req, httplib::Response& res)
     //  заглушка
     std::string idDisc = req.matches[1];
     std::string idUser = req.matches[2];
-    std::cout << "Disc: " << idDisc << " User: " << idUser << std::endl;
+    std::cout << "   Disc: " << idDisc << " User: " << idUser << std::endl;
 
 
     std::cout << "   End." << std::endl;
@@ -646,7 +646,7 @@ void DelDisceplineUser(const httplib::Request& req, httplib::Response& res)
     //  заглушка
     std::string idDisc = req.matches[1];
     std::string idUser = req.matches[2];
-    std::cout << "Disc: " << idDisc << " User: " << idUser << std::endl;
+    std::cout << "   Disc: " << idDisc << " User: " << idUser << std::endl;
 
 
     std::cout << "   End." << std::endl;
@@ -672,7 +672,7 @@ void AddDiscepline(const httplib::Request& req, httplib::Response& res)
     std::string description = body["description"];
     int idPrepod = std::stoi(std::string(body["id"]));
 
-    std::cout << "New discepline: " << name << ' ' << description << ' ' << idPrepod << std::endl;
+    std::cout << "   New discepline: " << name << ' ' << description << ' ' << idPrepod << std::endl;
 
 
     std::cout << "   End." << std::endl;
@@ -695,7 +695,7 @@ void DelDiscepline(const httplib::Request& req, httplib::Response& res)
 
     //  заглушка
     std::string id = req.matches[1];
-    std::cout << "id: " << id << std::endl;
+    std::cout << "   id: " << id << std::endl;
 
 
     std::cout << "   End." << std::endl;
@@ -723,10 +723,23 @@ void GetQuestList(const httplib::Request& req, httplib::Response& res)
     auto permission = CheckToken(req);
     if (Unauthorized(res, permission)) return;
 
+    //   TODO
+
+    //  заглушка
+    nlohmann::json jsonRes = nlohmann::json::array();
+    for (int i = 0; i < 10; i++)
+    {
+        nlohmann::json discepline;
+        discepline["name"] = "quest name" + std::to_string(i);
+        discepline["version"] = std::to_string(i);
+        discepline["idAuthor"] = i;
+        jsonRes.push_back(discepline);
+    }
+
+    res.set_content(jsonRes.dump(), "application/json");
+
 
     std::cout << "   End." << std::endl;
-
-    //   TODO
 }
 
 //  Посмотреть информацию о вопросе id вопроса и id версии вопроса
@@ -745,9 +758,20 @@ void GetQuestInfo(const httplib::Request& req, httplib::Response& res)
 
     //   TODO
 
-    std::string id1 = req.matches[1];
-    std::string id2 = req.matches[2];
-    std::cout << "idQuest: " << id1 << " idV" << id2 << std::endl;
+    //  заглушка
+    std::string idQuest = req.matches[1];
+    std::string version = req.matches[2];
+    std::cout << "   idQuest: " << idQuest << " version: " << version << std::endl;
+
+    nlohmann::json jsonRes;
+    jsonRes["name"] = "name_quest";
+    jsonRes["description"] = "description";
+    jsonRes["options"] = nlohmann::json::array();
+    for (int i = 0; i < 5; i++)
+        jsonRes["options"].push_back("opt" + std::to_string(i));
+    jsonRes["correct_answer"] = 1;
+
+    res.set_content(jsonRes.dump(), "application/json");
 
 
     std::cout << "   End." << std::endl;
@@ -768,6 +792,16 @@ void SetQuestInfo(const httplib::Request& req, httplib::Response& res)
 
     //   TODO
 
+    //  заглушка
+    int id = std::stoi(req.matches[1]);
+    nlohmann::json body = nlohmann::json::parse(req.body);
+    std::string name = body["name"];
+    std::string description = body["description"];
+    std::vector<std::string> options;
+    for (const auto i : body["options"])
+        options.push_back(i);
+    int correct_answer = body["correct_answer"];
+
 
     std::cout << "   End." << std::endl;
 }
@@ -786,6 +820,15 @@ void AddQuest(const httplib::Request& req, httplib::Response& res)
     if (Unauthorized(res, permission)) return;
 
     //   TODO
+
+    //  заглушка
+    nlohmann::json body = nlohmann::json::parse(req.body);
+    std::string name = body["name"];
+    std::string description = body["description"];
+    std::vector<std::string> options;
+    for (const auto i : body["options"])
+        options.push_back(i);
+    int correct_answer = body["correct_answer"];
 
 
     std::cout << "   End." << std::endl;
@@ -832,6 +875,13 @@ void DelTestQuest(const httplib::Request& req, httplib::Response& res)
 
     //   TODO
 
+    //  заглушка
+    int idDisc = std::stoi(req.matches[1]);
+    int idTest = std::stoi(req.matches[2]);
+    int idQuest = std::stoi(req.matches[3]);
+
+    std::cout << "   Del test " << idTest << " quest " << idQuest << std::endl;
+
 
     std::cout << "   End." << std::endl;
 }
@@ -850,6 +900,11 @@ void AddTestQuest(const httplib::Request& req, httplib::Response& res)
     if (Unauthorized(res, permission)) return;
 
     //   TODO
+
+    //  заглушка
+    int idDisc = std::stoi(req.matches[1]);
+    int idTest = std::stoi(req.matches[2]);
+    int idQuest = std::stoi(req.matches[3]);
 
 
     std::cout << "   End." << std::endl;
@@ -870,6 +925,10 @@ void SetTestQuestSequence(const httplib::Request& req, httplib::Response& res)
 
     //   TODO
 
+    //  заглушка
+    int idDisc = std::stoi(req.matches[1]);
+    int idTest = std::stoi(req.matches[2]);
+
 
     std::cout << "   End." << std::endl;
 }
@@ -888,6 +947,16 @@ void GetQuestUsers(const httplib::Request& req, httplib::Response& res)
     if (Unauthorized(res, permission)) return;
 
     //   TODO
+
+    //  заглушка
+    int idDisc = std::stoi(req.matches[1]);
+    int idTest = std::stoi(req.matches[2]);
+    nlohmann::json jsonRes;
+    jsonRes["users"] = nlohmann::json::array();
+    for (int i = 0; i < 5; i++)
+        jsonRes["users"].push_back("user" + std::to_string(i));
+    
+    res.set_content(jsonRes.dump(), "application/json");
 
 
     std::cout << "   End." << std::endl;
@@ -909,6 +978,21 @@ void GetTestGreads(const httplib::Request& req, httplib::Response& res)
 
     //   TODO
 
+    //  заглушка
+    int idDisc = std::stoi(req.matches[1]);
+    int idTest = std::stoi(req.matches[2]);
+    nlohmann::json jsonRes;
+    jsonRes["users"] = nlohmann::json::array();
+    for (int i = 0; i < 5; i++)
+    {
+        nlohmann::json user;
+        user["grade"] = 100;
+        user["id"] = i;
+        jsonRes["users"].push_back(user);
+    }
+    
+    res.set_content(jsonRes.dump(), "application/json");
+
 
     std::cout << "   End." << std::endl;
 }
@@ -928,6 +1012,23 @@ void GetTestAnswers(const httplib::Request& req, httplib::Response& res)
     if (Unauthorized(res, permission)) return;
 
     //   TODO
+
+    //  заглушка
+    int idDisc = std::stoi(req.matches[1]);
+    int idTest = std::stoi(req.matches[2]);
+    nlohmann::json jsonRes;
+    jsonRes["users"] = nlohmann::json::array();
+    for (int i = 0; i < 5; i++)
+    {
+        nlohmann::json user;
+        user["answer"] = nlohmann::json::array();
+        for (int j = 5; j < 5; j++)
+            user["answer"].push_back(i);
+        user["id"] = i;
+        jsonRes["users"].push_back(user);
+    }
+
+    res.set_content(jsonRes.dump(), "application/json");
 
 
     std::cout << "   End." << std::endl;
@@ -954,6 +1055,10 @@ void AddAttempt(const httplib::Request& req, httplib::Response& res)
     if (Unauthorized(res, permission)) return;
 
     //   TODO
+    
+    //  заглушка
+    int idDisc = std::stoi(req.matches[1]);
+    int idTest = std::stoi(req.matches[2]);
 
 
     std::cout << "   End." << std::endl;
@@ -973,6 +1078,10 @@ void SetAttempt(const httplib::Request& req, httplib::Response& res)
     if (Unauthorized(res, permission)) return;
 
     //   TODO
+
+    //  заглушка
+    int idDisc = std::stoi(req.matches[1]);
+    int idTest = std::stoi(req.matches[2]);
 
 
     std::cout << "   End." << std::endl;
@@ -994,6 +1103,10 @@ void FinAttempt(const httplib::Request& req, httplib::Response& res)
 
     //   TODO
 
+    //  заглушка
+    int idDisc = std::stoi(req.matches[1]);
+    int idTest = std::stoi(req.matches[2]);
+
 
     std::cout << "   End." << std::endl;
 }
@@ -1014,9 +1127,14 @@ void GetAttempt(const httplib::Request& req, httplib::Response& res)
 
     //   TODO
 
+    //  заглушка
+    int idDisc = std::stoi(req.matches[1]);
+    int idTest = std::stoi(req.matches[2]);
+
 
     std::cout << "   End." << std::endl;
 }
+
 
 
 
@@ -1040,6 +1158,11 @@ void AddAnswer(const httplib::Request& req, httplib::Response& res)
 
     //   TODO
 
+    //  заглушка
+    int idDisc = std::stoi(req.matches[1]);
+    int idTest = std::stoi(req.matches[2]);
+    int idQest = std::stoi(req.matches[3]);
+
 
     std::cout << "   End." << std::endl;
 }
@@ -1060,6 +1183,15 @@ void GetAnswer(const httplib::Request& req, httplib::Response& res)
 
     //   TODO
 
+    //  заглушка
+    int idDisc = std::stoi(req.matches[1]);
+    int idTest = std::stoi(req.matches[2]);
+    int idQest = std::stoi(req.matches[3]);
+
+    nlohmann::json jsonRes;
+    jsonRes["id"] = 0;
+    jsonRes["answer"] = -1;
+
 
     std::cout << "   End." << std::endl;
 }
@@ -1079,6 +1211,11 @@ void ChangeAnswer(const httplib::Request& req, httplib::Response& res)
 
     //   TODO
 
+    //  заглушка
+    int idDisc = std::stoi(req.matches[1]);
+    int idTest = std::stoi(req.matches[2]);
+    int idQest = std::stoi(req.matches[3]);
+
 
     std::cout << "   End." << std::endl;
 }
@@ -1097,6 +1234,11 @@ void DelAnswer(const httplib::Request& req, httplib::Response& res)
     if (Unauthorized(res, permission)) return;
 
     //   TODO
+
+    //  заглушка
+    int idDisc = std::stoi(req.matches[1]);
+    int idTest = std::stoi(req.matches[2]);
+    int idQest = std::stoi(req.matches[3]);
 
 
     std::cout << "   End." << std::endl;

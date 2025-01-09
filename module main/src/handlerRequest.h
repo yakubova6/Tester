@@ -4,11 +4,13 @@
 #include "checkToken.h"
 
 #include <httplib.h>
-#include <iostream>
-
 #include <jwt-cpp/jwt.h>
-#include <string>
 #include <nlohmann/json.hpp>
+
+#include <iostream>
+#include <string>
+#include <vector>
+
 
 void AddUser(const httplib::Request& req, httplib::Response& res);
 
