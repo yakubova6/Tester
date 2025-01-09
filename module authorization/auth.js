@@ -27,13 +27,13 @@ exports.generateAuthYandexUrl = function (accessToken) {
             client_id: CLIENT_ID_YANDEX,
             redirect_uri: REDIRECT_URI,
             scope: SCOPE,
-            accessToken: accessToken
+            state: accessToken
         });
     return (JSON.stringify({authUrl: authUrl}));
 }
 
 exports.generateAuthGithubUrl = function (accessToken) {
-    const authUrl = `${GITHUB_AUTH_URL}?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${GITHUB_REDIRECT_URI}&scope=user&accessToken=${accessToken}`;
+    const authUrl = `${GITHUB_AUTH_URL}?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${GITHUB_REDIRECT_URI}&scope=user&user=${accessToken}`;
     return (JSON.stringify({authUrl: authUrl}));    
 }
 
