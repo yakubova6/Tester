@@ -1,19 +1,66 @@
 
-//  вот почему я не изучил как вообще можно работать с этим?
-//  теперь приходится переписывать весь код с нуля...
-//  сейчас 1:40. чувствую это будет весёлая ночка
-
 #define CPPHTTPLIB_OPENSSL_SUPPORT
 #include <httplib.h>
 #include <string>
 #include <iostream>
+#include <pqxx/pqxx>
 
 #include "handlerRequest.h"
 
 
 int main ()
 {
+
+//      ПОДКЛЮЧЕНИЕ К PostgreSQL
+
+    std::string PasswordPostreSQL;
+
+    setlocale(LC_ALL, "ru");
+    while (true)
+    {
+        std::cout << "PostgreSQL password: ";
+        std::cin >> PasswordPostreSQL;
+
+        try {
+            // Создаем соединение с базой данных
+            pqxx::connection conn("host=127.0.0.1 port=5432 dbname=postgres user=postgres password=" + PasswordPostreSQL);
+
+            if (conn.is_open()) {
+                std::cout << "Connection to the database has been established!" << std::endl;
+
+                // Создаем транзакцию
+                pqxx::work txn(conn);
+
+                // Выполняем SQL-запрос
+                pqxx::result res = txn.exec("SELECT version()");
+
+                // Выводим результат
+                std::cout << "Version PostgreSQL: " << res[0][0] << std::endl;
+
+                // Завершаем транзакцию
+                txn.commit();
+                std::cout << std::endl;
+                break;
+            } else {
+                std::cerr << "Failed to connect to the database." << std::endl;
+            }
+
+            // Закрываем соединение
+            conn.close();
+        } catch (const std::exception &e) {
+            std::cerr << "Error: " << e.what() << std::endl;
+        }
+    }
+    
+
+
+
+//      ДОБАВЛЕНИЕ ЭНДПОИНТОВ И НАЧАЛО ПРОСЛУШКИ ПОРТА
+
+
     httplib::Server server;
+
+    server.Post("api/db/addUser", AddUser);         //      добавляет нового пользователя в бд после регистрации
 
 //      пользователи
     server.Get("/api/db/users", GetUserList);                                   //  Посмотреть список пользователей
@@ -30,20 +77,20 @@ int main ()
 // ..............................
 
 //      дисциплины
-    server.Get("/api/db/disciplines", GetDisceplines);                                          //  Посмотреть список дисциплин
-    server.Get("/api/db/disciplines/(\\d+)", GetDisceplineInfo);                                //  Посмотреть информацию о дисциплине (Название, Описание, ID преподавателя)
-    server.Put("/api/db/disciplines/(\\d+)", SetDisceplineInfo);                                //  Изменить информацию о дисциплине (Название, Описание)
-    server.Get("/api/db/disciplines/(\\d+)/tests", GetDisceplineTestList);                      //  Посмотреть информацию о дисциплине (Список тестов) по её id
-    server.Get("/api/db/disciplines/(\\d+)/tests/(\\d+)/active", GetDisceplineTestActive);      //  Посмотреть информацию о тесте (Активный тест или нет) (id теста и дисциплины)
-    server.Put("/api/db/disciplines/(\\d+)/tests/(\\d+)/activate", SetDisceplineTestActivate);  //  Активировать тест
-    server.Put("/api/db/disciplines/(\\d+)/tests/(\\d+)/deactivate", SetDisceplineTestDeactivate);//  Деактивировать тест
-    server.Post("/api/db/disciplines/(\\d+)/tests", AddDisceplineTest);                         //  Добавить тест в дисциплину по её id
-    server.Delete("/api/db/disciplines/(\\d+)/tests/(\\d+)", DelDisceplineTest);                //  Удалить тест из дисциплины (id дисциплины и теста)
-    server.Get("/api/db/disciplines/(\\d+)/users", GetDisceplineUserList);                      //  Посмотреть информацию о дисциплине (Список студентов)    
-    server.Put("/api/db/disciplines/(\\d+)/users(\\d+)", AddDisceplineUser);                    //  Записать пользователя на дисциплину
-    server.Delete("/api/db/disciplines/(\\d+)/users(\\d+)", DelDisceplineUser);                 //  Отчислить пользователя с дисциплины
-    server.Post("/api/db/disciplines", AddDiscepline);                                          //  Создать дисциплину
-    server.Delete("/api/db/disciplines/(\\d+)", DelDiscepline);                                 //  Удалить дисциплину
+    server.Get("/api/db/disciplines", GetDisceplines);                                                  //  Посмотреть список дисциплин
+    server.Get("/api/db/disciplines/(\\d+)", GetDisceplineInfo);                                        //  Посмотреть информацию о дисциплине (Название, Описание, ID преподавателя)
+    server.Put("/api/db/disciplines/(\\d+)", SetDisceplineInfo);                                        //  Изменить информацию о дисциплине (Название, Описание)
+    server.Get("/api/db/disciplines/(\\d+)/tests", GetDisceplineTestList);                              //  Посмотреть информацию о дисциплине (Список тестов) по её id
+    server.Get("/api/db/disciplines/(\\d+)/tests/(\\d+)/active", GetDisceplineTestActive);              //  Посмотреть информацию о тесте (Активный тест или нет) (id теста и дисциплины)
+    server.Put("/api/db/disciplines/(\\d+)/tests/(\\d+)/activate", SetDisceplineTestActivate);          //  Активировать тест
+    server.Put("/api/db/disciplines/(\\d+)/tests/(\\d+)/deactivate", SetDisceplineTestDeactivate);      //  Деактивировать тест
+    server.Post("/api/db/disciplines/(\\d+)/tests", AddDisceplineTest);                                 //  Добавить тест в дисциплину по её id
+    server.Delete("/api/db/disciplines/(\\d+)/tests/(\\d+)", DelDisceplineTest);                        //  Удалить тест из дисциплины (id дисциплины и теста)
+    server.Get("/api/db/disciplines/(\\d+)/users", GetDisceplineUserList);                              //  Посмотреть информацию о дисциплине (Список студентов)    
+    server.Put("/api/db/disciplines/(\\d+)/users(\\d+)", AddDisceplineUser);                            //  Записать пользователя на дисциплину
+    server.Delete("/api/db/disciplines/(\\d+)/users(\\d+)", DelDisceplineUser);                         //  Отчислить пользователя с дисциплины
+    server.Post("/api/db/disciplines", AddDiscepline);                                                  //  Создать дисциплину
+    server.Delete("/api/db/disciplines/(\\d+)", DelDiscepline);                                         //  Удалить дисциплину
 // ..............................
 
 //      вопросы                                                      
@@ -55,7 +102,7 @@ int main ()
 //  ..............................
 
 //      тесты 
-    server.Delete("/api/db/disciplines/(\\d+)/tests/(\\d+)/quest(\\d+)", DelTestQuest);                    //  Удалить вопрос из теста
+    server.Delete("/api/db/disciplines/(\\d+)/tests/(\\d+)/quest(\\d+)", DelTestQuest);                 //  Удалить вопрос из теста
     server.Post("/api/db/disciplines/(\\d+)/tests/(\\d+)/quest(\\d+)", AddTestQuest);                   //  Добавить вопрос в тест
     server.Put("/api/db/disciplines/(\\d+)/tests/(\\d+)/quest(\\d+)", SetTestQuestSequence);            //  Изменить порядок следования вопросов в тесте
     server.Get("/api/db/disciplines/(\\d+)/tests/(\\d+)/quest(\\d+)/users", GetQuestUsers);             //  Посмотреть список пользователей прошедших тест
@@ -71,14 +118,14 @@ int main ()
 //  ..............................
 
 //      ответы
-    server.Post("/api/db/disciplines/(\\d+)/test/(\\d+)/quest/(\\d+)", AddAnswer);    //  Создать
-    server.Get("/api/db/disciplines/(\\d+)/test/(\\d+)/quest/(\\d+)", GetAnswer);     //  Посмотреть
-    server.Put("/api/db/disciplines/(\\d+)/test/(\\d+)/quest/(\\d+)", ChangeAnswer);          //  Изменить
-    server.Delete("/api/db/disciplines/(\\d+)/test/(\\d+)/quest/(\\d+)", DelAnswer);       //  Удалить
+    server.Post("/api/db/disciplines/(\\d+)/test/(\\d+)/quest/(\\d+)", AddAnswer);      //  Создать
+    server.Get("/api/db/disciplines/(\\d+)/test/(\\d+)/quest/(\\d+)", GetAnswer);       //  Посмотреть
+    server.Put("/api/db/disciplines/(\\d+)/test/(\\d+)/quest/(\\d+)", ChangeAnswer);    //  Изменить
+    server.Delete("/api/db/disciplines/(\\d+)/test/(\\d+)/quest/(\\d+)", DelAnswer);    //  Удалить
 //  ..............................
 
 
-    std::cout << "Server started at http://127.0.0.1:1111/" << std::endl;
+    std::cout << "Server started at http://127.0.0.1:1111/" << std::endl << std::endl;
     server.listen("127.0.0.1", 1111);
     std::cout << "Server was stoped." << std::endl;
 

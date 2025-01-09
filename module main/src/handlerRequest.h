@@ -10,6 +10,8 @@
 #include <string>
 #include <nlohmann/json.hpp>
 
+void AddUser(const httplib::Request& req, httplib::Response& res);
+
 //      пользователи        --------------------------------------------------------------------------------
 
 void GetUserList(const httplib::Request& req, httplib::Response& res);                  //  Посмотреть список пользователей
