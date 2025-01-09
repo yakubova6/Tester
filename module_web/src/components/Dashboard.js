@@ -13,9 +13,9 @@ const Dashboard = () => {
     useEffect(() => {
         const checkSession = async () => {
             try {
-                const sessionResponse = await axios.get('http://localhost:5000/api/session', { withCredentials: true });
+                const sessionResponse = await axios.get('/api/session', { withCredentials: true });
                 if (sessionResponse.data.status === 'authorized') {
-                    const userResponse = await axios.get('http://localhost:5000/api/user-data', { withCredentials: true });
+                    const userResponse = await axios.get('/api/user-data', { withCredentials: true });
                     setUserData(userResponse.data);
                 } else {
                     navigate('/'); // Перенаправляем на домашнюю страницу
