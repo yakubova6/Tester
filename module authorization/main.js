@@ -78,6 +78,12 @@ app.get('/callback', async (req, res) => {
 
         const { access_token, refresh_token, expires_in, scope } = response.data;
 
+        const userInfoResponse = await axios.get('https://login.yandex.ru/info', {
+            headers: { Authorization: `OAuth ${access_token}` },
+        });
+        userInfo = userInfoResponse.data;
+        console.log(userInfo)
+
         res.json({ access_token, refresh_token, expires_in, scope, });
 
     } catch (error) {
@@ -89,3 +95,100 @@ app.get('/callback', async (req, res) => {
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
 });
+
+
+// const express = require('express');
+// const axios = require('axios');
+// const querystring = require('querystring');
+
+// const GITHUB_CLIENT_ID = 'Iv23liiWV4dof4W8N3G7';
+// const GITHUB_CLIENT_SECRET = '9870570d7f11e296b3dd633fef8b7abcb2cb663e';
+// const GITHUB_REDIRECT_URI = 'http://localhost:8000/callback';
+// const GITHUB_AUTH_URL = 'https://github.com/login/oauth/authorize';
+// const GITHUB_TOKEN_URL = 'https://github.com/login/oauth/access_token';
+// const GITHUB_USER_URL = 'https://api.github.com/user';
+
+// const app = express();
+// const port = 8000;
+
+// // Генерация URL для авторизации через GitHub
+// app.get('/github/authorize', (req, res) => {
+//     const authUrl = `${GITHUB_AUTH_URL}?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${GITHUB_REDIRECT_URI}&scope=user`;
+//     res.redirect(authUrl);
+// });
+
+// // Callback обработка для GitHub
+// app.get('/callback', async (req, res) => {
+//     console.log('success go to callback')
+//     const { code } = req.query;
+
+//     // Проверяем наличие кода
+//     if (!code) {
+//         return res.status(400).send('Code is missing');
+//     }
+
+//     try {
+//         // Шаг 1: Обмен кода на токен
+//         const tokenResponse = await axios.post(
+//             GITHUB_TOKEN_URL,
+//             querystring.stringify({
+//                 client_id: GITHUB_CLIENT_ID,
+//                 client_secret: GITHUB_CLIENT_SECRET,
+//                 code,
+//                 scope: 'user:email', // Запрашиваем доступ к email пользователя
+//                 redirect_uri: GITHUB_REDIRECT_URI,
+//             }),
+//             {
+//                 headers: {
+//                     'Accept': 'application/json',
+//                     'Content-Type': 'application/x-www-form-urlencoded',
+//                 },
+//             }
+//         );
+        
+//         // Логируем токен для отладки
+//         console.log('Token Response:', tokenResponse.data);
+
+//         // Извлекаем access_token
+//         const { access_token } = tokenResponse.data;
+
+//         if (!access_token) {
+//             return res.status(400).send('No access token received');
+//         }
+
+//         // Шаг 2: Получение информации о пользователе
+//         const userInfoResponse = await axios.get(GITHUB_USER_URL, {
+//             headers: { Authorization: `Bearer ${access_token}` },
+//         });
+
+//         const userInfo = userInfoResponse.data;
+
+//         // Логируем информацию о пользователе
+//         console.log('User Info:', userInfo.email);
+
+//         // Шаг 3: Отправляем информацию о пользователе в ответ
+//         res.json(userInfo);
+
+//     } catch (error) {
+//         // Логируем подробности ошибки
+//         console.error('Error during token exchange or user info fetch:', error.response ? error.response.data : error.message);
+//         res.status(500).send('Error during the process');
+//     }
+// });
+
+// // Страница с кнопкой для авторизации через GitHub
+// app.get('/', (req, res) => {
+//     const htmlContent = `
+//         <html>
+//         <body>
+//             <h2>GitHub Authorization</h2>
+//             <a href="/github/authorize"><button>Login with GitHub</button></a>
+//         </body>
+//         </html>
+//     `;
+//     res.send(htmlContent);
+// });
+
+// app.listen(port, () => {
+//     console.log(`Server running at http://localhost:${port}`);
+// });
