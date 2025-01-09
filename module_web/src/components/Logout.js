@@ -8,7 +8,7 @@ const Logout = ({ setUserStatus }) => {
     const handleLogout = async () => {
         try {
             // Выполнение запроса на выход
-            await axios.post('http://localhost:5000/api/logout', {}, { withCredentials: true });
+            await axios.post('/api/logout', {}, { withCredentials: true });
             setUserStatus('unknown'); // Обновляем статус пользователя на 'unknown'
             navigate('/'); // Перенаправление на главную страницу после выхода
         } catch (error) {
