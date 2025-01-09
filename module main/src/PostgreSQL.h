@@ -11,6 +11,42 @@ void PostgresInit()
     SetConsoleOutputCP(CP_UTF8);
     setlocale(LC_ALL, "ru_RU.UTF-8");
 
+    while (true)
+    {
+        std::cout << "Введите пароль для PostgreSQL: ";
+        std::cin >> PasswordPostgreSQL;
+
+        // Формирование строки подключения
+        std::string connInfo = "host=127.0.0.1 dbname=postgres user=postgres password=" + PasswordPostgreSQL;
+
+        try
+        {
+            // Попытка подключения к базе данных
+            pqxx::connection conn(connInfo);
+
+            if (conn.is_open())
+            {
+                std::cout << "Подключение к базе данных успешно установлено!" << std::endl;
+                conn.close();
+                break; // Выход из цикла, если подключение успешно
+            }
+            else
+            {
+                std::cerr << "Не удалось подключиться к базе данных." << std::endl;
+            }
+        }
+        catch (const pqxx::sql_error &e)
+        {
+            std::cerr << "Ошибка SQL: " << e.what() << std::endl;
+            std::cerr << "Запрос: " << e.query() << std::endl;
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << "Ошибка: " << e.what() << std::endl;
+        }
+    }
+    
+
     try {
         // Подключение к серверу PostgreSQL (без указания конкретной базы данных)
         pqxx::connection conn("host=127.0.0.1 user=postgres password=" + PasswordPostgreSQL);
