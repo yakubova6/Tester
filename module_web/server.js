@@ -6,6 +6,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const path = require('path');
+const crypto = require('crypto');
 require('dotenv').config();
 
 const app = express();
@@ -34,12 +35,14 @@ redisClient.connect().then(() => {
 });
 
 // Убедитесь, что секретный ключ загружен из переменных окружения
-const SECRET_KEY = process.env.SECRET_KEY;
+const SECRET_KEY = 'your_secret_key';
 
 if (!SECRET_KEY) {
     console.error('SECRET_KEY is not defined in the environment variables');
     process.exit(1); // Завершить процесс, если SECRET_KEY не задан
 }
+
+const AUTH_MODULE_URL = 'http://localhost:8000'; 
 
 // Middleware для проверки JWT токена доступа
 const verifyToken = (req, res, next) => {
@@ -61,109 +64,142 @@ const verifyToken = (req, res, next) => {
     });
 };
 
-// Обработка ошибок
-const handleError = (res, error, defaultMessage = 'Internal Server Error') => {
-    console.error(error);
-    res.status(500).json({ error: defaultMessage });
-};
-
-// Функция для отправки запроса к главному модулю 
-const sendRequestToDBModule = async (method, url, data = {}, token) => {
-    try {
-        const response = await axios({
-            method,
-            url: `http://localhost:1111${url}`, // URL главного модуля 
-            headers: {
-                Authorization: `Bearer ${token}`, // Передаем токен
-            },
-            data,
-        });
-        return response.data;
-    } catch (error) {
-        console.error('Ошибка при запросе к главному модулю :', error.response?.data || error.message);
-        throw error;
-    }
-};
-
-// API маршруты
+// Генерация loginToken
+function generateLoginToken() {
+    return crypto.randomBytes(16).toString('hex'); // Случайная строка
+}
 
 // Аутентификация
-app.post('/api/auth/callback', async (req, res) => {
-    const { code, state } = req.body;
+// Генерация loginToken и сохранение в Redis
+app.get('/api/auth/login', async (req, res) => {
+    const { type } = req.query;
 
-    if (!code || !state) {
-        return res.status(400).json({ error: 'Missing required parameters' });
+    if (!type) {
+        return res.redirect('/'); // Если type отсутствует, редирект на главную
+    }
+
+    const loginToken = generateLoginToken(); // Генерация токена входа
+    const state = loginToken;
+
+    console.log('Сгенерирован loginToken и state:', state); // Логируем loginToken и state
+
+    // Сохраняем state, loginToken и type в Redis
+    await redisClient.set(state, JSON.stringify({ loginToken, type, status: 'pending' }), 'EX', 300); // Хранение на 5 минут
+
+    try {
+        let authUrl;
+        if (type === 'github') {
+            // Запрашиваем ссылку у модуля авторизации с параметром loginToken
+            const response = await axios.get(`${AUTH_MODULE_URL}/github/getlink`, {
+                params: { loginToken }, // Передаем loginToken как параметр запроса
+            });
+
+            // Проверяем, что response.data является объектом
+            console.log("responseData:", response.data);
+            if (response.data && response.data.authUrl) {
+                authUrl = response.data.authUrl; // Извлекаем authUrl
+            } else {
+                throw new Error('Ответ не содержит authUrl');
+            }
+        } else if (type === 'yandex') {
+            // Запрашиваем ссылку у модуля авторизации с параметром loginToken
+            const response = await axios.get(`${AUTH_MODULE_URL}/yandex/getlink`, {
+                params: { loginToken }, // Передаем loginToken как параметр запроса
+            });
+
+            // Проверяем, что response.data является объектом
+            console.log("responseData:", response.data);
+            if (response.data && response.data.authUrl) {
+                authUrl = response.data.authUrl; // Извлекаем authUrl
+            } else {
+                throw new Error('Ответ не содержит authUrl');
+            }
+        } else {
+            return res.status(400).json({ error: 'Неподдерживаемый тип авторизации.' });
+        }
+
+        // Возвращаем URL авторизации
+        res.json({ authUrl });
+    } catch (error) {
+        console.error('Ошибка при запросе ссылки у модуля авторизации:', error.message);
+        res.status(500).json({ error: 'Ошибка при запросе ссылки у модуля авторизации' });
+    }
+});
+
+// Обработка коллбэка
+app.get('/api/auth/callback', async (req, res) => {
+    const { code, state } = req.query; // Используем req.query для получения параметров
+
+    console.log('Получен коллбэк с кодом:', code, 'и состоянием:', state); // Логируем код и состояние
+
+    // Проверка состояния в Redis
+    const stateData = await redisClient.get(state);
+    if (!stateData) {
+        console.log('Недействительный параметр состояния:', state); // Логируем недействительное состояние
+        return res.status(400).json({ error: 'Invalid state parameter.' });
     }
 
     try {
-        // Проверяем, что state существует в Redis
-        const stateData = await redisClient.get(state);
-        if (!stateData) {
-            return res.status(400).json({ error: 'Invalid state parameter.' });
-        }
+        const { loginToken, type } = JSON.parse(stateData); // Теперь также извлекаем type
+        console.log('Получен loginToken из Redis:', loginToken); // Логируем loginToken
 
-        // Парсим данные из state
-        const { provider } = JSON.parse(stateData);
-
-        // Отправляем запрос в модуль авторизации
+        // Запрос на получение токена доступа
         const authResponse = await axios.post('http://localhost:8000/api/auth/exchange', {
             code,
-            state: provider, // Передаем провайдера (github, yandex или code)
+            state,
+            type, // Передаем type
+
         });
 
-        // Получаем ответ от модуля авторизации
-        const { sessionToken, accessToken, userInfo } = authResponse.data;
+        console.log('Ответ от сервера авторизации:', authResponse.data); // Логируем ответ от сервера авторизации
 
-        // Сохраняем данные в Redis
-        await redisClient.set(sessionToken, JSON.stringify({ accessToken, userInfo, status: 'authorized' }), 'EX', 43200);
+        const { accessToken, userInfo } = authResponse.data;
 
-        // Устанавливаем куку и возвращаем ответ
+        // Генерация токена доступа (JWT) для пользователя
+        const sessionToken = jwt.sign({ userInfo }, SECRET_KEY, { expiresIn: '1h' });
+      //  console.log('Сгенерирован токен сессии:', sessionToken); // Логируем токен сессии
+
+        // Сохранение токена доступа в Redis и отправка куки
+        await redisClient.set(sessionToken, JSON.stringify({ accessToken, userInfo }), 'EX', 3600);
+      //  console.log('Токен сессии сохранен в Redis с ключом:', sessionToken); // Логируем сохранение в Redis
+        
+     //   console.log('Установка куки с токеном:', sessionToken); // Логируем токен
         res.cookie('session_token', sessionToken, { httpOnly: true, secure: false, sameSite: 'Lax' });
-        res.json({ sessionToken, status: 'authorized' });
+       // console.log('Кука session_token установлена:', sessionToken); // Логируем установку куки
 
+        // // Перенаправление на клиентское приложение с параметрами
+        res.redirect(`/auth/callback?code=${code}&state=${state}`);
     } catch (error) {
-        console.error('Error in /api/auth/callback:', error.response?.data || error.message); // Логируем ошибку
-        handleError(res, error);
+        console.error('Ошибка при обработке коллбэка:', error);
+        res.status(500).json({ error: 'Ошибка при обработке коллбэка' });
     }
 });
 
 // Проверка сессии
+// Обработчик маршрута для проверки сессии
 app.get('/api/session', async (req, res) => {
-    const sessionToken = req.cookies.session_token;
-    console.log('Session token received:', sessionToken); // Логируем значение токена
+    console.log('Запрос к /api/session получен'); // Логируем получение запроса
+
+    const sessionToken = req.cookies.session_token; // Получаем сессионный токен из куки
+  //  console.log('Сессионный токен из куки:', sessionToken); // Логируем токен
 
     if (!sessionToken) {
-        console.log('No session token found');
-        return res.status(401).json({ status: 'unknown' });
+        console.log('Сессионный токен не найден'); // Логируем отсутствие токена
+        return res.status(401).json({ status: 'unauthorized' });
     }
 
     try {
-        const data = await redisClient.get(sessionToken);
-        if (!data) {
-            console.log('No data found in Redis for token:', sessionToken);
-            return res.status(401).json({ status: 'unknown' });
+        const sessionData = await redisClient.get(sessionToken);
+        if (!sessionData) {
+            console.log('Сессионные данные не найдены в Redis для токена:', sessionToken); // Логируем отсутствие данных
+            return res.status(401).json({ status: 'unauthorized' });
         }
 
-        const sessionData = JSON.parse(data);
-        console.log('Session data:', sessionData);
-        res.status(200).json({ status: sessionData.status });
+       // console.log('Сессионные данные найдены:', sessionData); // Логируем найденные данные
+        res.json({ status: 'authorized' }); // Возвращаем статус авторизации
     } catch (error) {
-        console.error('Error in /api/session:', error);
-        handleError(res, error);
-    }
-});
-
-// Получение данных пользователя
-app.get('/api/user-data', verifyToken, async (req, res) => {
-    const accessToken = req.user.accessToken;
-
-    try {
-        const userDataResponse = await axios.get('https://api.github.com/user', {
-            headers: { Authorization: `Bearer ${accessToken}` },
-        });
-        res.status(200).json(userDataResponse.data);
-    } catch (error) {
-        handleError(res, error);
+        console.error('Ошибка при проверке сессии:', error); // Логируем ошибки
+        res.status(500).json({ error: 'Ошибка при проверке сессии' });
     }
 });
 
@@ -509,7 +545,7 @@ app.post('/api/attempts', verifyToken, async (req, res) => {
     }
 });
 
-// Обновить информацию о попытке по её ID
+// Изменить информацию о попытке по её ID
 app.put('/api/attempts/:id', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
