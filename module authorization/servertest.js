@@ -11,7 +11,7 @@ const CLIENT_SECRET_YAN = 'd7ee049d87e3461baadfd34deebd4ebc';
 const REDIRECT_URI = 'http://localhost:8080/callback';
 
 const GITHUB_CLIENT_ID = 'Iv23liiWV4dof4W8N3G7';
-const GITHUB_CLIENT_SECRET = '9870570d7f11e296b3dd633fef8b7abcb2cb663e';
+const GITHUB_CLIENT_SECRET = '27a3e1b31f7b9b2b211ce83acc97e6fc820e649a';
 const GITHUB_REDIRECT_URI = 'http://localhost:8000/callback';
 const GITHUB_AUTH_URL = 'https://github.com/login/oauth/authorize';
 const GITHUB_TOKEN_URL = 'https://github.com/login/oauth/access_token';
@@ -35,9 +35,10 @@ app.get('/yandex/getlink', (req, res) => {
 });
 
 app.post('/api/auth/exchange', async (req, res) => {
-    const { code, state, refreshToken } = req.body;
-    if (!state || (!code && !refreshToken)) {
-        return res.status(400).json({ error: 'Отсутствуют необходимые параметры: state, code или refreshToken.' });
+    console.log(req.body)
+    const { code, type, state } = req.body;
+    if (!state || (!code)) {
+        // return res.status(400).json({ error: 'Отсутствуют необходимые параметры: state, code или loginToken.' });
     }
 
     try {
@@ -46,13 +47,13 @@ app.post('/api/auth/exchange', async (req, res) => {
         let permissionsForUser
         let userEmail
 
-        if (state === 'github') {
+        if (type === 'github') {
             const response = await axios.post('https://github.com/login/oauth/access_token', {
                 client_id: GITHUB_CLIENT_ID,
                 client_secret: GITHUB_CLIENT_SECRET,
                 code,
             }, { headers: { Accept: 'application/json' } });
-
+            console.log(response.data)
             accessToken = response.data.access_token;
             if (!accessToken) {
                 return res.status(400).json({ error: 'GitHub не предоставил токен доступа.' });
@@ -74,7 +75,7 @@ app.post('/api/auth/exchange', async (req, res) => {
             }
             
 
-        } else if (state === 'yandex') {
+        } else if (type === 'yandex') {
             const response = await axios.post('https://oauth.yandex.ru/token', querystring.stringify({
                 grant_type: 'authorization_code',
                 code,
@@ -105,7 +106,7 @@ app.post('/api/auth/exchange', async (req, res) => {
                 permissionsForUser = getPermissionsByRoles(['Student'])
             }
 
-        } else if (state === 'code') {
+        } else if (type === 'code') {
 
         } else {
             return res.status(400).json({ error: `Некорректный параметр state: ${state}` });

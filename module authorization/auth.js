@@ -9,32 +9,32 @@ const collectionName = "users";
 // .. YANDEX
 const CLIENT_ID_YANDEX = '9bdb9a05b73646f580fe3b12e35b1825';
 const CLIENT_SECRET_YANDEX = 'd7ee049d87e3461baadfd34deebd4ebc';
-const REDIRECT_URI = 'http://localhost:8080/callback';
+const REDIRECT_URI = 'http://localhost:5000/api/auth/callback';
 const SCOPE = 'login:info login:email';
 
 // .. GITHUB
 const GITHUB_CLIENT_ID = 'Iv23liiWV4dof4W8N3G7';
 const GITHUB_CLIENT_SECRET = '9870570d7f11e296b3dd633fef8b7abcb2cb663e';
-const GITHUB_REDIRECT_URI = 'http://localhost:8000/callback';
+const GITHUB_REDIRECT_URI = 'http://localhost:5000/api/auth/callback';
 const GITHUB_AUTH_URL = 'https://github.com/login/oauth/authorize';
 const GITHUB_TOKEN_URL = 'https://github.com/login/oauth/access_token';
 const GITHUB_USER_URL = 'https://api.github.com/user';
 
-exports.generateAuthYandexUrl = function (accessToken) {
+exports.generateAuthYandexUrl = function (state) {
     const authUrl = `https://oauth.yandex.ru/authorize?` +
         querystring.stringify({
             response_type: 'code',
             client_id: CLIENT_ID_YANDEX,
             redirect_uri: REDIRECT_URI,
             scope: SCOPE,
-            state: accessToken
+            state: state
         });
-    return (JSON.stringify({authUrl: authUrl}));
+    return (JSON.stringify({ authUrl: authUrl }));
 }
 
-exports.generateAuthGithubUrl = function (accessToken) {
-    const authUrl = `${GITHUB_AUTH_URL}?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${GITHUB_REDIRECT_URI}&scope=user&user=${accessToken}`;
-    return (JSON.stringify({authUrl: authUrl}));    
+exports.generateAuthGithubUrl = function (state) {
+    const authUrl = `${GITHUB_AUTH_URL}?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${GITHUB_REDIRECT_URI}&state=${state}&scope=user`;
+    return (JSON.stringify({ authUrl: authUrl }));
 }
 
 exports.addOrUpdateUser = async function (email) {
@@ -72,7 +72,7 @@ exports.addOrUpdateUser = async function (email) {
     }
 };
 
-exports.addTokenToUser = async function(email, refreshToken) {
+exports.addTokenToUser = async function (email, refreshToken) {
     const client = new MongoClient(uri);
 
     try {
@@ -113,9 +113,9 @@ exports.getUserRoles = async function (email) {
         const user = await collection.findOne({ email: email });
 
         if (user) {
-            return user.roles; 
+            return user.roles;
         } else {
-            return null; 
+            return null;
         }
     } catch (error) {
         console.error("Ошибка:", error);
@@ -127,98 +127,98 @@ exports.getUserRoles = async function (email) {
 
 const permissions = {
     "Student": {
-      "user": {
-        "user:list:read": true,
-        "user:fullName:read": true,
-        "user:data:read": true,
-        "user:block:read": true
-      },
-      "course": {
-        "course:testList": true,
-        "course:userList": true,
-        "course:user:add": true,
-        "course:user:del": true,
-        "course:user:read": true
-      },
-      "test": {
-        "test:answer:read": true,
-        "test:answer:update": true,
-        "test:answer:del": true
-      },
-      "quest": {
-        "quest:list:read": true,
-        "quest:read": true
-      }
+        "user": {
+            "user:list:read": true,
+            "user:fullName:read": true,
+            "user:data:read": true,
+            "user:block:read": true
+        },
+        "course": {
+            "course:testList": true,
+            "course:userList": true,
+            "course:user:add": true,
+            "course:user:del": true,
+            "course:user:read": true
+        },
+        "test": {
+            "test:answer:read": true,
+            "test:answer:update": true,
+            "test:answer:del": true
+        },
+        "quest": {
+            "quest:list:read": true,
+            "quest:read": true
+        }
     },
     "Teacher": {
-      "user": {
-        "user:list:read": true,
-        "user:fullName:read": true,
-        "user:data:read": true,
-        "user:roles:read": true,
-        "user:block:read": true,
-        "user:block:write": true
-      },
-      "course": {
-        "course:add": true,
-        "course:del": true,
-        "course:testList": true,
-        "course:test:read": true,
-        "course:test:write": true,
-        "course:userList": true,
-        "course:user:add": true,
-        "course:user:del": true
-      },
-      "test": {
-        "test:quest:add": true,
-        "test:quest:del": true,
-        "test:quest:update": true,
-        "test:answer:read": true,
-        "test:answer:update": true,
-        "test:answer:del": true
-      },
-      "quest": {
-        "quest:create": true,
-        "quest:update": true,
-        "quest:del": true
-      }
+        "user": {
+            "user:list:read": true,
+            "user:fullName:read": true,
+            "user:data:read": true,
+            "user:roles:read": true,
+            "user:block:read": true,
+            "user:block:write": true
+        },
+        "course": {
+            "course:add": true,
+            "course:del": true,
+            "course:testList": true,
+            "course:test:read": true,
+            "course:test:write": true,
+            "course:userList": true,
+            "course:user:add": true,
+            "course:user:del": true
+        },
+        "test": {
+            "test:quest:add": true,
+            "test:quest:del": true,
+            "test:quest:update": true,
+            "test:answer:read": true,
+            "test:answer:update": true,
+            "test:answer:del": true
+        },
+        "quest": {
+            "quest:create": true,
+            "quest:update": true,
+            "quest:del": true
+        }
     },
     "Admin": {
-      "user": {
-        "user:list:read": true,
-        "user:fullName:read": true,
-        "user:data:read": true,
-        "user:roles:read": true,
-        "user:roles:write": true,
-        "user:block:read": true,
-        "user:block:write": true
-      },
-      "course": {
-        "course:add": true,
-        "course:del": true,
-        "course:testList": true,
-        "course:test:read": true,
-        "course:test:write": true,
-        "course:userList": true,
-        "course:user:add": true,
-        "course:user:del": true
-      },
-      "test": {
-        "test:quest:add": true,
-        "test:quest:del": true,
-        "test:quest:update": true,
-        "test:answer:read": true,
-        "test:answer:update": true,
-        "test:answer:del": true
-      },
-      "quest": {
-        "quest:create": true,
-        "quest:update": true,
-        "quest:del": true
-      }
+        "user": {
+            "user:list:read": true,
+            "user:fullName:read": true,
+            "user:data:read": true,
+            "user:roles:read": true,
+            "user:roles:write": true,
+            "user:block:read": true,
+            "user:block:write": true
+        },
+        "course": {
+            "course:add": true,
+            "course:del": true,
+            "course:testList": true,
+            "course:test:read": true,
+            "course:test:write": true,
+            "course:userList": true,
+            "course:user:add": true,
+            "course:user:del": true
+        },
+        "test": {
+            "test:quest:add": true,
+            "test:quest:del": true,
+            "test:quest:update": true,
+            "test:answer:read": true,
+            "test:answer:update": true,
+            "test:answer:del": true
+        },
+        "quest": {
+            "quest:create": true,
+            "quest:update": true,
+            "quest:del": true
+        }
     }
-  };
-  
+};
+
 exports.getPermissionsByRoles = function (roles) {
     let allPermissions = [];
 
@@ -232,7 +232,7 @@ exports.getPermissionsByRoles = function (roles) {
     return allPermissions;
 }
 
-exports.sendPostRequest = async function(name, idx, type) {
+exports.sendPostRequest = async function (name, idx, type) {
     const data = {
         name: name,
         idx: idx,
