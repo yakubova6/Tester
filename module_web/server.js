@@ -70,7 +70,6 @@ function generateLoginToken() {
 }
 
 // Аутентификация
-// Генерация loginToken и сохранение в Redis
 app.get('/api/auth/login', async (req, res) => {
     const { type } = req.query;
 
@@ -123,6 +122,29 @@ app.get('/api/auth/login', async (req, res) => {
     } catch (error) {
         console.error('Ошибка при запросе ссылки у модуля авторизации:', error.message);
         res.status(500).json({ error: 'Ошибка при запросе ссылки у модуля авторизации' });
+    }
+});
+
+app.post('/api/auth/code', async (req, res) => {
+    const loginToken = generateLoginToken(); // Генерация токена входа
+
+    try {
+        console.log('Отправляем запрос на генерацию кода...');
+
+        const response = await axios.post('http://localhost:8000/api/auth/code/generate',  { loginToken } );
+        console.log('Ответ от модуля авторизации:', response.data);
+
+        const { code } = response.data; // Предполагаем, что код возвращается в response.data
+
+        if (code) {
+            // Возвращаем код клиенту
+            res.json({ code });
+        } else {
+            throw new Error('Ответ не содержит код');
+        }
+    } catch (error) {
+        console.error('Ошибка при получении кода:', error);
+        res.status(500).json({ error: 'Ошибка при получении кода' });
     }
 });
 
