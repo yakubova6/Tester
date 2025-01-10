@@ -30,19 +30,20 @@ h2 {
 }
 
 /* Стили для полей ввода */
-input[type="text"] {
-    width: 100%; /* Занимает всю ширину контейнера */
-    padding: 10px; /* Отступы внутри поля */
-    border: 2px solid #ccc; /* Цвет бордюра (можно изменить) */
-    border-radius: 4px; /* Закругленные углы */
-    margin: 10px 0; /* Отступы сверху и снизу */
-    font-size: 1rem; /* Размер шрифта */
-    box-sizing: border-box; /* Учет бордюра и отступов в ширину */
+.input-field {
+    width: 100%; 
+    padding: 10px; 
+    border: 1px solid #31649b; 
+    border-radius: 5px; 
+    font-size: 16px; 
+    box-sizing: border-box; 
+    margin-top: 10px; /* Отступ сверху */
+    transition: border-color 0.3s; 
 }
 
-input[type="text"]:focus {
-    border-color: #31649b; /* Цвет бордюра при фокусе */
-    outline: none; /* Убираем стандартный контур */
+.input-field:focus {
+    outline: none; 
+    border-color: #2e5e92; 
 }
 
 /* Кнопки */
