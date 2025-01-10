@@ -268,11 +268,9 @@ void GetUserBlock(const httplib::Request& req, httplib::Response& res)
     auto permission = CheckToken(req);
     if (Unauthorized(res, permission)) return;
 
-    //   TODO
-
-    //  заглушка
+    int uid = std::stoi(req.matches[1]);
     nlohmann::json jsonRes;
-    jsonRes["banned"] = false;
+    jsonRes["banned"] = sql_get_one_bool("banned", "users", uid);
     res.set_content(jsonRes.dump(), "application/json");
 
 
@@ -341,21 +339,20 @@ void GetDisceplines(const httplib::Request& req, httplib::Response& res)
     *   +
     */
 
-    std::cout << "Get disceplines:" << std::endl;
+    std::cout << "Get disciplines:" << std::endl;
     auto permission = CheckToken(req);
     if (Unauthorized(res, permission)) return;
 
-    //   TODO
-    
-    //  заглушка
-    nlohmann::json jsonRes = nlohmann::json::array();
-    for (int i = 0; i < 10; i++)
+    nlohmann::json jsonRes;
+    jsonRes["disciplines"] = nlohmann::json::array();
+    std::vector<int> disid = sql_get_list_int("id", "disciplines");
+    std::vector<std::string> disciplines = sql_get_list_str("name", "disciplines");
+    for (int i = 0; i < disid.size(); i++)
     {
-        nlohmann::json discepline;
-        discepline["name"] = "DiscName" + std::to_string(i);
-        discepline["description"] = "Description" + std::to_string(i);
-        discepline["id"] = i;
-        jsonRes.push_back(discepline);
+        nlohmann::json discipline;
+        discipline["name"] = disciplines[i];
+        discipline["id"] = disid[i];
+        jsonRes["disciplines"].push_back(discipline);
     }
 
     res.set_content(jsonRes.dump(), "application/json");
@@ -372,20 +369,18 @@ void GetDisceplineInfo(const httplib::Request& req, httplib::Response& res)
     *   +
     */
 
-    std::cout << "Get discepline info:" << std::endl;
+    std::cout << "Get discipline info:" << std::endl;
     auto permission = CheckToken(req);
     if (Unauthorized(res, permission)) return;
 
     std::string id = req.matches[1];
     std::cout << "   id: " << id << std::endl;
 
-    //   TODO
-
-    //  заглушка
+    int disid = std::stoi(req.matches[1]);
     nlohmann::json jsonRes;
-    jsonRes["name"] = "Disc" + id;
-    jsonRes["description"] = "description....";
-    jsonRes["prepod"] = "Prepod" + id;
+    jsonRes["name"] = sql_get_one_str("name", "disciplines", disid);
+    jsonRes["description"] = sql_get_one_str("description", "disciplines", disid);
+    jsonRes["teacher_id"] = sql_get_one_int("teacher_id", "disciplines", disid);
 
     res.set_content(jsonRes.dump(), "application/json");
 
@@ -597,19 +592,23 @@ void GetDisceplineUserList(const httplib::Request& req, httplib::Response& res)
     *   - Для чужих
     */
     
-    std::cout << "Get discepline user-list:" << std::endl;
+    std::cout << "Get discipline user-list:" << std::endl;
     auto permission = CheckToken(req);
     if (Unauthorized(res, permission)) return;
 
     //   TODO
 
-    std::string id = req.matches[1];
-    std::cout << "id: " << id << std::endl;
-
-    //  заглушка
-    nlohmann::json jsonRes = nlohmann::json::array();
-    for (int i = 0; i < 10; i++)
-        jsonRes.push_back("User" + std::to_string(i));
+    int disid = std::stoi(req.matches[1]);
+    nlohmann::json jsonRes;
+    jsonRes["users"] = nlohmann::json::array();
+    std::vector<int> users = sql_get_list_int("id", "users");
+    for (auto i : users)
+    {
+        std::vector<int> disciplines = sql_get_array_int("disciplines", "users", i);
+        for (auto j : disciplines)
+            if (j == disid)
+                jsonRes["users"].push_back(i);
+    }
 
     res.set_content(jsonRes.dump(), "application/json");
 
@@ -626,36 +625,18 @@ void AddDisceplineUser(const httplib::Request& req, httplib::Response& res)
     *   - Других
     */
     
-    std::cout << "Add discepline test user:" << std::endl;
+    std::cout << "Add discipline user:" << std::endl;
     auto permission = CheckToken(req);
     if (Unauthorized(res, permission)) return;
 
-    std::string idDisc = req.matches[1];
-    std::string idUser = req.matches[2];
-    std::cout << "   Disc: " << idDisc << " User: " << idUser << std::endl;
+    int disid = std::stoi(req.matches[1]);
+    int uid = std::stoi(req.matches[2]);
+    std::cout << "   Disc: " << disid << " User: " << uid << std::endl;
 
-     try {
-        pqxx::connection conn("dbname=" + dbName + " user=postgres password=" + PasswordPostgreSQL + " host=127.0.0.1 port=5432");
-        pqxx::work txn(conn);
-
-        auto result = txn.exec_params1(
-            "SELECT $1 = ANY(disciplines) FROM users WHERE id = $2",
-            idDisc, idUser
-        );
-        if (!result[0].is_null()) {
-            std::cout << "   Discipline already exists for this user!" << std::endl;
-            return;
-        }
-        txn.exec_params(
-            "UPDATE users "
-            "SET disciplines = array_append(disciplines, $1) "
-            "WHERE id = $2",
-            idDisc, idUser
-        );
-        txn.commit();
-    } catch (const std::exception &e) {
-        std::cerr << "   Error: " << e.what() << std::endl;
-    }
+    std::vector<int> user = sql_get_array_int("disciplines", "users", uid);
+    bool find_disc = false;
+    for (auto i : user) if (i == disid) find_disc = true;
+    if (!find_disc) sql_add_to_array_int("disciplines", "users", uid, disid);
 
 
     std::cout << "   End." << std::endl;
@@ -670,16 +651,13 @@ void DelDisceplineUser(const httplib::Request& req, httplib::Response& res)
     *   - Других
     */
     
-    std::cout << "Del discepline test user:" << std::endl;
+    std::cout << "Del discipline user:" << std::endl;
     auto permission = CheckToken(req);
     if (Unauthorized(res, permission)) return;
 
-    //   TODO
-
-    //  заглушка
-    std::string idDisc = req.matches[1];
-    std::string idUser = req.matches[2];
-    std::cout << "   Disc: " << idDisc << " User: " << idUser << std::endl;
+    int disid = std::stoi(req.matches[1]);
+    int uid = std::stoi(req.matches[2]);
+    sql_del_from_array_int("disciplines", "users", uid, disid);
 
 
     std::cout << "   End." << std::endl;
@@ -1682,6 +1660,56 @@ std::string sql_get_one_str(const std::string& column_name, const std::string& t
     return one;
 }
 
+int sql_get_one_int(const std::string& column_name, const std::string& table_name, int id)
+{
+    int one = -3;
+
+    try {
+        pqxx::connection conn("dbname=" + dbName + " user=postgres password=" + PasswordPostgreSQL + " host=127.0.0.1 port=5432");
+
+        if (conn.is_open()) {
+            pqxx::work txn(conn);       //  начало транзакции
+            pqxx::result result = txn.exec("SELECT " + column_name + " FROM " + table_name + " WHERE id = " + std::to_string(id));
+
+            auto row = result[0];
+            one = row[0].as<int>();
+            
+            txn.commit();               //  конец транзакции
+        } else {
+            std::cerr << "   Failed to connect to database." << std::endl;
+        }
+    } catch (const std::exception &e) {
+        std::cerr << "   Error: " << e.what() << std::endl;
+    }
+
+    return one;
+}
+
+bool sql_get_one_bool(const std::string& column_name, const std::string& table_name, int id)
+{
+    bool one = false;
+
+    try {
+        pqxx::connection conn("dbname=" + dbName + " user=postgres password=" + PasswordPostgreSQL + " host=127.0.0.1 port=5432");
+
+        if (conn.is_open()) {
+            pqxx::work txn(conn);       //  начало транзакции
+            pqxx::result result = txn.exec("SELECT " + column_name + " FROM " + table_name + " WHERE id = " + std::to_string(id));
+
+            auto row = result[0];
+            one = row[0].as<bool>();
+            
+            txn.commit();               //  конец транзакции
+        } else {
+            std::cerr << "   Failed to connect to database." << std::endl;
+        }
+    } catch (const std::exception &e) {
+        std::cerr << "   Error: " << e.what() << std::endl;
+    }
+
+    return one;
+}
+
 
 void sql_update_one_str(const std::string& column_name, const std::string& table_name, int id, const std::string new_value)
 {
@@ -1703,3 +1731,49 @@ void sql_update_one_str(const std::string& column_name, const std::string& table
     }
 }
 
+
+
+
+void sql_del_from_array_int(const std::string& column_name, const std::string& table_name, int id, int num) {
+    try {
+        // Подключение к базе данных
+        pqxx::connection conn("dbname=" + dbName + " user=postgres password=" + PasswordPostgreSQL + " host=127.0.0.1 port=5432");
+
+        if (conn.is_open()) {
+            pqxx::work txn(conn); // Начало транзакции
+
+            // Формируем SQL-запрос для удаления элемента из массива
+            std::string query = "UPDATE " + table_name + " SET " + column_name + 
+            " = array_remove(" + column_name + ", " + txn.quote(num) + ") WHERE id = " + txn.quote(id);
+            
+            // Выполняем запрос
+            txn.exec(query);
+
+            txn.commit(); // Завершение транзакции
+        } else {
+            std::cerr << "   Failed to connect to database." << std::endl;
+        }
+    } catch (const std::exception &e) {
+        std::cerr << "   Error: " << e.what() << std::endl;
+    }
+}
+
+
+
+void sql_add_to_array_int(const std::string& column_name, const std::string& table_name, int id, int num)
+{
+    try {
+        pqxx::connection conn("dbname=" + dbName + " user=postgres password=" + PasswordPostgreSQL + " host=127.0.0.1 port=5432");
+        pqxx::work txn(conn);
+
+        txn.exec_params(
+            "UPDATE users "
+            "SET disciplines = array_append(disciplines, $1) "
+            "WHERE id = $2",
+            num, id
+        );
+        txn.commit();
+    } catch (const std::exception &e) {
+        std::cerr << "   Error: " << e.what() << std::endl;
+    }
+}

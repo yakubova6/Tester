@@ -17,10 +17,15 @@
 std::vector<int> sql_get_array_int(const std::string& column_name, const std::string& table_name, int id);
 std::vector<std::string> sql_get_array_str(const std::string& column_name, const std::string& table_name, int id);
 
+void sql_del_from_array_int(const std::string& column_name, const std::string& table_name, int id, int num);
+void sql_add_to_array_int(const std::string& column_name, const std::string& table_name, int id, int num);
+
 std::vector<std::string> sql_get_list_str (const std::string& column_name, const std::string& table_name);
 std::vector<int> sql_get_list_int (const std::string& column_name, const std::string& table_name);
 
 std::string sql_get_one_str(const std::string& column_name, const std::string& table_name, int id);
+int sql_get_one_int(const std::string& column_name, const std::string& table_name, int id);
+bool sql_get_one_bool(const std::string& column_name, const std::string& table_name, int id);
 
 void sql_update_one_str(const std::string& column_name, const std::string& table_name, int id, const std::string new_value);
 
@@ -31,33 +36,33 @@ void AddUser(const httplib::Request& req, httplib::Response& res);
 
 //      пользователи        --------------------------------------------------------------------------------
 
-void GetUserList(const httplib::Request& req, httplib::Response& res);                  // +  Посмотреть список пользователей
-void GetUserNamea(const httplib::Request& req, httplib::Response& res);                 // +  Посмотреть информацию о пользователе (ФИО)
-void SetUserName(const httplib::Request& req, httplib::Response& res);                  // +  Изменить ФИО пользователя
-void GetUserCourses(const httplib::Request& req, httplib::Response& res);               // + Посмотреть информацию о пользователе (курсы)              
+void GetUserList(const httplib::Request& req, httplib::Response& res);                  //  + Посмотреть список пользователей
+void GetUserNamea(const httplib::Request& req, httplib::Response& res);                 //  + Посмотреть информацию о пользователе (ФИО)
+void SetUserName(const httplib::Request& req, httplib::Response& res);                  //  + Изменить ФИО пользователя
+void GetUserCourses(const httplib::Request& req, httplib::Response& res);               //  + Посмотреть информацию о пользователе (курсы)              
 void GetUserGrades(const httplib::Request& req, httplib::Response& res);                //  Посмотреть информацию о пользователе (оценки)           
 void GetUserTests(const httplib::Request& req, httplib::Response& res);                 //  Посмотреть информацию о пользователе (тесты)           
-void GetUserRoles(const httplib::Request& req, httplib::Response& res);                 // ? Посмотреть информацию о пользователе (роли)                  
+void GetUserRoles(const httplib::Request& req, httplib::Response& res);                 //  + Посмотреть информацию о пользователе (роли)                  
 void SetUserRoles(const httplib::Request& req, httplib::Response& res);                 //  Изменить роли пользователя              
-void GetUserBlock(const httplib::Request& req, httplib::Response& res);                 //  Посмотреть заблокирован ли пользователь               
+void GetUserBlock(const httplib::Request& req, httplib::Response& res);                 //  + Посмотреть заблокирован ли пользователь               
 void SetUserBlock(const httplib::Request& req, httplib::Response& res);                 //  заблокировать пользователя
 void SetUserUnblock(const httplib::Request& req, httplib::Response& res);               //  разблокировать пользователя
 
 
 //      дисциплины          --------------------------------------------------------------------------------
 
-void GetDisceplines(const httplib::Request& req, httplib::Response& res);               //  Посмотреть список дисциплин
-void GetDisceplineInfo(const httplib::Request& req, httplib::Response& res);            //  Посмотреть информацию о дисциплине (Название, Описание, ID преподавателя)
+void GetDisceplines(const httplib::Request& req, httplib::Response& res);               //  + Посмотреть список дисциплин
+void GetDisceplineInfo(const httplib::Request& req, httplib::Response& res);            //  + Посмотреть информацию о дисциплине (Название, Описание, ID преподавателя)
 void SetDisceplineInfo(const httplib::Request& req, httplib::Response& res);            //  Изменить информацию о дисциплине (Название, Описание)
 void GetDisceplineTestList(const httplib::Request& req, httplib::Response& res);        //  Посмотреть информацию о дисциплине (Список тестов)
 void GetDisceplineTestActive(const httplib::Request& req, httplib::Response& res);      //  Посмотреть информацию о тесте (Активный тест или нет)
 void SetDisceplineTestActivate(const httplib::Request& req, httplib::Response& res);    //  Активировать/Деактивировать тест
 void SetDisceplineTestDeactivate(const httplib::Request& req, httplib::Response& res);  //  Активировать/Деактивировать тест
-void AddDisceplineTest(const httplib::Request& req, httplib::Response& res);            //  Добавить тест в дисциплину по её id
+void AddDisceplineTest(const httplib::Request& req, httplib::Response& res);            //  ? Добавить тест в дисциплину по её id
 void DelDisceplineTest(const httplib::Request& req, httplib::Response& res);            //  Удалить тест из дисциплины (id дисциплины и теста)
-void GetDisceplineUserList(const httplib::Request& req, httplib::Response& res);        //  Посмотреть информацию о дисциплине (Список студентов)
+void GetDisceplineUserList(const httplib::Request& req, httplib::Response& res);        //  + Посмотреть информацию о дисциплине (Список студентов)
 void AddDisceplineUser(const httplib::Request& req, httplib::Response& res);            //  + Записать пользователя на дисциплину
-void DelDisceplineUser(const httplib::Request& req, httplib::Response& res);            //  Отчислить пользователя с дисциплины
+void DelDisceplineUser(const httplib::Request& req, httplib::Response& res);            //  + Отчислить пользователя с дисциплины
 void AddDiscepline(const httplib::Request& req, httplib::Response& res);                //  + Создать дисциплину
 void DelDiscepline(const httplib::Request& req, httplib::Response& res);                //  Удалить дисциплину
 

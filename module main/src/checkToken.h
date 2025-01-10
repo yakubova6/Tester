@@ -43,7 +43,7 @@ inline std::string findToken(const httplib::Request& req)
 inline std::unordered_map<jwt::traits::kazuho_picojson::string_type, jwt::claim> CheckToken(const httplib::Request& req)
 {
     std::unordered_map<jwt::traits::kazuho_picojson::string_type, jwt::claim> payload;
-    std::string secret = "key";
+    std::string secret = "your_secret_key";
 
     std::cout << "   Find token... ";
     std::string token = findToken(req);
