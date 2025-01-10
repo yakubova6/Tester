@@ -5,7 +5,7 @@
 #include <iostream>
 
 #include "handlerRequest.h"
-#include "PostgreSQL.h"
+//#include "PostgreSQL.h"
 
 
 int main ()
@@ -13,6 +13,7 @@ int main ()
 
 //      ПОДКЛЮЧЕНИЕ К PostgreSQL
     PostgresInit();
+    //add_user();
 
 
 //      ДОБАВЛЕНИЕ ЭНДПОИНТОВ И НАЧАЛО ПРОСЛУШКИ ПОРТА
@@ -47,8 +48,8 @@ int main ()
     server.Post("/api/db/disciplines/(\\d+)/tests", AddDisceplineTest);                                 //  Добавить тест в дисциплину по её id
     server.Delete("/api/db/disciplines/(\\d+)/tests/(\\d+)", DelDisceplineTest);                        //  Удалить тест из дисциплины (id дисциплины и теста)
     server.Get("/api/db/disciplines/(\\d+)/users", GetDisceplineUserList);                              //  Посмотреть информацию о дисциплине (Список студентов)    
-    server.Put("/api/db/disciplines/(\\d+)/users(\\d+)", AddDisceplineUser);                            //  Записать пользователя на дисциплину
-    server.Delete("/api/db/disciplines/(\\d+)/users(\\d+)", DelDisceplineUser);                         //  Отчислить пользователя с дисциплины
+    server.Put("/api/db/disciplines/(\\d+)/users/(\\d+)", AddDisceplineUser);                           //  Записать пользователя на дисциплину
+    server.Delete("/api/db/disciplines/(\\d+)/users/(\\d+)", DelDisceplineUser);                        //  Отчислить пользователя с дисциплины
     server.Post("/api/db/disciplines", AddDiscepline);                                                  //  Создать дисциплину
     server.Delete("/api/db/disciplines/(\\d+)", DelDiscepline);                                         //  Удалить дисциплину
 // ..............................

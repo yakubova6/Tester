@@ -1,12 +1,16 @@
+
+#pragma once
+
 #include <pqxx/pqxx>
 #include <iostream>
 #include <windows.h> // Для SetConsoleOutputCP
+#include <vector>
 
-void PostgresInit()
+extern std::string PasswordPostgreSQL = "1234";
+extern std::string dbName = "db_module";
+/*
+inline void PostgresInit()
 {
-    std::string PasswordPostgreSQL = "1234"; // Пароль для подключения к PostgreSQL
-    std::string dbName = "db_module"; // Имя базы данных, которую нужно проверить или создать 
-
     // Установка кодировки консоли на UTF-8
     SetConsoleOutputCP(CP_UTF8);
     setlocale(LC_ALL, "ru_RU.UTF-8");
@@ -172,4 +176,93 @@ void PostgresInit()
 
     std::cout << std::endl;
 }
+*/
 
+/*
+
+void add_user() {
+    
+    std::string last_name = "user_lastName4";
+    std::string first_name = "user_firstName4";
+    std::string middle_name = "user_middleName4";
+    std::vector<std::string> roles;
+    for (int i = 0; i < 5; i++)
+        roles.push_back("role" + std::to_string(i));
+    bool banned = false;
+    std::string password = PasswordPostgreSQL;
+
+
+    // Установка кодировки консоли на UTF-8
+    SetConsoleOutputCP(CP_UTF8);
+    setlocale(LC_ALL, "ru_RU.UTF-8");
+
+    try {
+        // Подключение к базе данных
+        pqxx::connection conn("host=127.0.0.1 dbname=" + dbName + " user=postgres password=" + password);
+
+        // Создание транзакции
+        pqxx::work txn(conn);
+
+        // Подготовка массива ролей для SQL-запроса
+        std::string roles_array = "{";
+        for (size_t i = 0; i < roles.size(); ++i) {
+            roles_array += "\"" + txn.esc(roles[i]) + "\""; // Экранируем и заключаем в одинарные кавычки
+            if (i < roles.size() - 1) {
+                roles_array += ", ";
+            }
+        }
+        roles_array += "}";
+        // SQL-запрос для добавления пользователя
+        std::string query = "INSERT INTO users (last_name, first_name, middle_name, roles, banned) "
+                            "VALUES ('" + txn.esc(last_name) + "', '" + txn.esc(first_name) + "', '" + txn.esc(middle_name) + "', "
+                            "'" + roles_array + "', " + (banned ? "TRUE" : "FALSE") + ")";
+
+        // Выполнение запроса
+        txn.exec(query);
+
+        // Завершение транзакции
+        txn.commit();
+
+        std::cout << "Пользователь успешно добавлен." << std::endl;
+    } catch (const std::exception &e) {
+        std::cerr << "Ошибка при добавлении пользователя: " << e.what() << std::endl;
+    }
+}
+
+*/
+
+
+
+inline void print_all_user_ids() {
+    try {
+        // Подключение к базе данных
+        pqxx::connection conn("dbname=db_module user=postgres password=" + PasswordPostgreSQL + " host=127.0.0.1 port=5432");
+
+        if (conn.is_open()) {
+            std::cout << "Connected to database successfully!" << std::endl;
+
+            // Создание транзакции
+            pqxx::work txn(conn);
+
+            // Выполнение SQL-запроса
+            pqxx::result result = txn.exec("SELECT id, last_name, first_name, middle_name FROM users");
+
+            // Вывод результатов
+            for (auto row : result) {
+                int id = row[0].as<int>();
+                std::string last_name = row[1].as<std::string>();
+                std::string first_name = row[2].as<std::string>();
+                std::string middle_name = row[3].as<std::string>();
+                
+                std::cout << "ID: " << id << " last_name: " << last_name << " first_name: " << first_name << " middle_name: " << middle_name << std::endl;
+            }
+
+            // Завершение транзакции
+            txn.commit();
+        } else {
+            std::cerr << "Failed to connect to database." << std::endl;
+        }
+    } catch (const std::exception &e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+    }
+}

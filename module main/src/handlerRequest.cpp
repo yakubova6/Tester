@@ -1,9 +1,13 @@
 
 #include "handlerRequest.h"
 
+extern std::string PasswordPostgreSQL = "1234";
+extern std::string dbName = "db_module";
+
 
 bool Unauthorized(httplib::Response& res, std::unordered_map<jwt::traits::kazuho_picojson::string_type, jwt::claim> permission)
 {
+    return false;
     if (permission.empty()) {
         std::cout << "   Token not found or invalid. return status 401" << std::endl;
         res.status = 401; // Unauthorized
@@ -47,15 +51,23 @@ void GetUserList(const httplib::Request& req, httplib::Response& res)
     std::cout << "Get user-list:" << std::endl;
     auto permission = CheckToken(req);
     if (Unauthorized(res, permission)) return;
-    
-    //   TODO
 
-    //  заглушка
+    std::vector<int> uid           = sql_get_list_int("id", "users");
+    std::vector<std::string> lname = sql_get_list_str("last_name", "users");
+    std::vector<std::string> fname = sql_get_list_str("first_name", "users");
+    std::vector<std::string> mname = sql_get_list_str("middle_name", "users");
 
     nlohmann::json jsonRes;
-    for (int i = 0; i < 10; i++)
-        jsonRes["user" + std::to_string(i)] = i;
-
+    jsonRes["users"] = nlohmann::json::array();
+    for (int i = 0; i < uid.size(); i++)
+    {
+        nlohmann::json user;
+        user["id"] = uid[i];
+        user["last_name"] = lname[i];
+        user["first_name"] = fname[i];
+        user["middle_name"] = mname[i];
+        jsonRes["users"].push_back(user);
+    }
     res.set_content(jsonRes.dump(), "application/json");
 
 
@@ -75,16 +87,11 @@ void GetUserNamea(const httplib::Request& req, httplib::Response& res)
     auto permission = CheckToken(req);
     if (Unauthorized(res, permission)) return;
 
-    //   TODO
-
-    //  заглушка
-
     int id = std::stoi(req.matches[1]);
     nlohmann::json jsonRes;
-    jsonRes["first_name"] = "first_name" + std::to_string(id);      //  имя
-    jsonRes["last_name"] = "last_name" + std::to_string(id);        //  фамилия
-    jsonRes["middle_name"] = "middle_name" + std::to_string(id);    //  отчество
-
+    jsonRes["last_name"]   = sql_get_one_str("last_name", "users", id);
+    jsonRes["first_name"]  = sql_get_one_str("first_name", "users", id);
+    jsonRes["middle_name"] = sql_get_one_str("middle_name", "users", id);
     res.set_content(jsonRes.dump(), "application/json");
 
 
@@ -104,16 +111,15 @@ void SetUserName(const httplib::Request& req, httplib::Response& res)
     auto permission = CheckToken(req);
     if (Unauthorized(res, permission)) return;
     
-    //  TODO
-
-    //  заглушка
     nlohmann::json body = nlohmann::json::parse(req.body);
-
+    int uid = std::stoi(req.matches[1]);
     std::string first_name = body["first_name"];    //  имя
     std::string last_name = body["last_name"];      //  фамилия
     std::string middle_name = body["middle_name"];  //  отчество
 
-    std::cout << "   New full name: " << first_name << ' ' << last_name << ' ' << middle_name << std::endl;
+    sql_update_one_str("first_name", "users", uid, first_name);
+    sql_update_one_str("last_name", "users", uid, last_name);
+    sql_update_one_str("middle_name", "users", uid, middle_name);
 
 
     std::cout << "   End." << std::endl;
@@ -132,12 +138,19 @@ void GetUserCourses(const httplib::Request& req, httplib::Response& res)
     auto permission = CheckToken(req);
     if (Unauthorized(res, permission)) return;
 
-    //  TODO
+    nlohmann::json jsonRes;
+    jsonRes["disciplines"] = nlohmann::json::array();
+    int uid = std::stoi(req.matches[1]);
 
-    //  заглушка
-    nlohmann::json jsonRes = nlohmann::json::array();
-    for (int i = 0; i < 10; i++)
-        jsonRes.push_back("Disc" + std::to_string(i));
+    std::vector<int> disid = sql_get_array_int("disciplines", "users", uid);
+    
+    for (auto i : disid)
+    {
+        nlohmann::json discipline;
+        discipline["id"] = i;
+        discipline["name"] = sql_get_one_str("name", "disciplines", i);
+        jsonRes["disciplines"].push_back(discipline);
+    }
 
     res.set_content(jsonRes.dump(), "application/json");
 
@@ -210,13 +223,13 @@ void GetUserRoles(const httplib::Request& req, httplib::Response& res)
     auto permission = CheckToken(req);
     if (Unauthorized(res, permission)) return;
 
-    //   TODO
-
-    //  заглушка
-    nlohmann::json jsonRes = nlohmann::json::array();
-    for (int i = 0; i < 5; i++)
-        jsonRes.push_back("Role" + std::to_string(i));
-
+    int uid = std::stoi(req.matches[1]);
+    nlohmann::json jsonRes;
+    std::vector<std::string> roles = sql_get_array_str("roles", "users", uid);
+    jsonRes["roles"] = nlohmann::json::array();
+    for (auto i : roles)
+        jsonRes["roles"].push_back(i);
+    
     res.set_content(jsonRes.dump(), "application/json");
 
 
@@ -617,12 +630,32 @@ void AddDisceplineUser(const httplib::Request& req, httplib::Response& res)
     auto permission = CheckToken(req);
     if (Unauthorized(res, permission)) return;
 
-    //   TODO
-
-    //  заглушка
     std::string idDisc = req.matches[1];
     std::string idUser = req.matches[2];
     std::cout << "   Disc: " << idDisc << " User: " << idUser << std::endl;
+
+     try {
+        pqxx::connection conn("dbname=" + dbName + " user=postgres password=" + PasswordPostgreSQL + " host=127.0.0.1 port=5432");
+        pqxx::work txn(conn);
+
+        auto result = txn.exec_params1(
+            "SELECT $1 = ANY(disciplines) FROM users WHERE id = $2",
+            idDisc, idUser
+        );
+        if (!result[0].is_null()) {
+            std::cout << "   Discipline already exists for this user!" << std::endl;
+            return;
+        }
+        txn.exec_params(
+            "UPDATE users "
+            "SET disciplines = array_append(disciplines, $1) "
+            "WHERE id = $2",
+            idDisc, idUser
+        );
+        txn.commit();
+    } catch (const std::exception &e) {
+        std::cerr << "   Error: " << e.what() << std::endl;
+    }
 
 
     std::cout << "   End." << std::endl;
@@ -664,15 +697,30 @@ void AddDiscepline(const httplib::Request& req, httplib::Response& res)
     auto permission = CheckToken(req);
     if (Unauthorized(res, permission)) return;
 
-    //   TODO
-
-    //  заглушка
     nlohmann::json body = nlohmann::json::parse(req.body);
     std::string name = body["name"];
     std::string description = body["description"];
     int idPrepod = std::stoi(std::string(body["id"]));
 
-    std::cout << "   New discepline: " << name << ' ' << description << ' ' << idPrepod << std::endl;
+    try {
+        pqxx::connection conn("dbname=" + dbName + " user=postgres password=" + PasswordPostgreSQL + " host=127.0.0.1 port=5432");
+
+        if (conn.is_open()) {
+            pqxx::work txn(conn);  // Начало транзакции
+            std::string query = 
+                "INSERT INTO disciplines (name, description, teacher_id) "
+                "VALUES (" + 
+                txn.quote(name) + ", " + 
+                txn.quote(description) + ", " + 
+                txn.quote(idPrepod) + ") RETURNING id";
+            pqxx::result result = txn.exec(query);
+            txn.commit();  // Завершение транзакции
+        } else {
+            std::cerr << "   Failed to connect to database." << std::endl;
+        }
+    } catch (const std::exception &e) {
+        std::cerr << "   Error: " << e.what() << std::endl;
+    }
 
 
     std::cout << "   End." << std::endl;
@@ -1242,5 +1290,416 @@ void DelAnswer(const httplib::Request& req, httplib::Response& res)
 
 
     std::cout << "   End." << std::endl;
+}
+
+
+
+
+
+
+void PostgresInit()
+{
+    // Установка кодировки консоли на UTF-8
+    SetConsoleOutputCP(CP_UTF8);
+    setlocale(LC_ALL, "ru_RU.UTF-8");
+
+    while (true)
+    {
+        std::cout << "Введите пароль для PostgreSQL: ";
+        std::cin >> PasswordPostgreSQL;
+
+        // Формирование строки подключения
+        std::string connInfo = "host=127.0.0.1 dbname=postgres user=postgres password=" + PasswordPostgreSQL;
+
+        try
+        {
+            // Попытка подключения к базе данных
+            pqxx::connection conn(connInfo);
+
+            if (conn.is_open())
+            {
+                std::cout << "Подключение к базе данных успешно установлено!" << std::endl;
+                conn.close();
+                break; // Выход из цикла, если подключение успешно
+            }
+            else
+            {
+                std::cerr << "Не удалось подключиться к базе данных." << std::endl;
+            }
+        }
+        catch (const pqxx::sql_error &e)
+        {
+            std::cerr << "Ошибка SQL: " << e.what() << std::endl;
+            std::cerr << "Запрос: " << e.query() << std::endl;
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << "Ошибка: " << e.what() << std::endl;
+        }
+    }
+    
+
+    try {
+        // Подключение к серверу PostgreSQL (без указания конкретной базы данных)
+        pqxx::connection conn("host=127.0.0.1 user=postgres password=" + PasswordPostgreSQL);
+
+        // Создание транзакции для проверки существования базы данных
+        pqxx::work txn(conn);
+
+        // Выполнение запроса для проверки существования базы данных
+        pqxx::result result = txn.exec("SELECT 1 FROM pg_database WHERE datname = '" + dbName + "'");
+
+        // Проверка результата
+        if (!result.empty()) {
+            std::cout << "База данных 'db_module' существует." << std::endl;
+        } else {
+            std::cout << "База данных 'db_module' не существует. Создание..." << std::endl;
+
+            // Завершаем текущую транзакцию, так как CREATE DATABASE не может выполняться внутри транзакции
+            txn.commit();
+
+            // Создаем новое соединение для выполнения CREATE DATABASE
+            pqxx::connection conn_create("host=127.0.0.1 user=postgres password=" + PasswordPostgreSQL);
+            pqxx::nontransaction nontxn(conn_create);
+
+            // Выполнение команды создания базы данных
+            nontxn.exec("CREATE DATABASE " + dbName);
+            std::cout << "База данных 'db_module' успешно создана." << std::endl;
+        }
+    } catch (const std::exception &e) {
+        std::cerr << "Ошибка: " << e.what() << std::endl;
+    }
+
+    try {
+        // Подключение к базе данных dbName
+        pqxx::connection conn("host=127.0.0.1 dbname=" + dbName + " user=postgres password=" + PasswordPostgreSQL);
+
+        // Создание транзакции для проверки существования таблиц
+        pqxx::work txn(conn);
+
+        // Список таблиц, которые нужно проверить и создать
+        std::string tables[] = {"users", "disciplines", "tests", "questions", "attempts", "answers"};
+
+        // Проверка существования каждой таблицы
+        for (const auto& table : tables) {
+            pqxx::result result = txn.exec(
+                "SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = '" + table + "'"
+            );
+
+            if (!result.empty()) {
+                std::cout << "Таблица '" << table << "' существует." << std::endl;
+            } else {
+                std::cout << "Таблица '" << table << "' не существует. Создание..." << std::endl;
+
+                // Создание таблицы в зависимости от её имени
+                if (table == "users") {
+                    txn.exec(
+                        "CREATE TABLE users ("
+                        "id SERIAL PRIMARY KEY, "           // ID пользователя
+                        "last_name VARCHAR(50) NOT NULL, "  // Фамилия
+                        "first_name VARCHAR(50) NOT NULL, " // Имя
+                        "middle_name VARCHAR(50), "         // Отчество
+                        "roles TEXT[], "                    // Список ролей (массив)
+                        "disciplines INT[], "               // Список дисциплин
+                        "banned BOOLEAN DEFAULT FALSE)"     // Бан
+                    );
+                } else if (table == "disciplines") {
+                    txn.exec(
+                        "CREATE TABLE disciplines ("
+                        "id SERIAL PRIMARY KEY, "               // ID дисциплины
+                        "name VARCHAR(100) NOT NULL UNIQUE, "   // Название дисциплины
+                        "description TEXT, "                    // Описание
+                        "teacher_id INT REFERENCES users(id))"  // ID преподавателя
+                    );
+                } else if (table == "tests") {
+                    txn.exec(
+                        "CREATE TABLE tests ("
+                        "id SERIAL PRIMARY KEY, "                           // ID теста
+                        "discipline_id INT REFERENCES disciplines(id), "    // ID дисциплины
+                        "author_id INT REFERENCES users(id), "              // ID автора
+                        "question_ids INT[], "                              // Список ID вопросов (массив)
+                        "attempt_ids INT[], "                               // Список ID попыток (массив)
+                        "is_active BOOLEAN DEFAULT TRUE)"                   // Активен ли тест
+                    );
+                } else if (table == "questions") {
+                    txn.exec(
+                        "CREATE TABLE questions ("
+                        "id SERIAL PRIMARY KEY, "               // ID вопрос
+                        "author_id INT REFERENCES users(id), "  // ID автора
+                        "version INT NOT NULL, "                // Версия вопроса
+                        "title VARCHAR(255) NOT NULL, "         // Название вопроса
+                        "description TEXT, "                    // Описание вопроса
+                        "options TEXT[], "                      // Список вариантов ответов (массив)
+                        "correct_option_index INT)"             // Номер правильного ответа
+                    );
+                } else if (table == "attempts") {
+                    txn.exec(
+                        "CREATE TABLE attempts ("
+                        "id SERIAL PRIMARY KEY, "                           // ID попытки
+                        "user_id INT REFERENCES users(id), "                // ID пользователя
+                        "test_id INT REFERENCES tests(id), "                // ID теста
+                        "discipline_id INT REFERENCES disciplines(id), "    // ID дисциплины
+                        "answer_ids INT[], "                                // Список ID ответов (массив)
+                        "is_completed BOOLEAN DEFAULT FALSE)"               // Завершена ли попытка
+                    );
+                } else if (table == "answers") {
+                    txn.exec(
+                        "CREATE TABLE answers ("
+                        "id SERIAL PRIMARY KEY, "                       // ID ответа
+                        "attempt_id INT REFERENCES attempts(id), "      // ID попытки
+                        "question_id INT REFERENCES questions(id), "    // ID вопроса
+                        "answer_index INT)"                             // Индекс ответа
+                    );
+                }
+
+                std::cout << "Таблица '" << table << "' успешно создана." << std::endl;
+            }
+        }
+
+        // Завершение транзакции
+        txn.commit();
+    } catch (const std::exception &e) {
+        std::cerr << "Ошибка: " << e.what() << std::endl;
+    }
+
+    std::cout << std::endl;
+}
+
+
+
+
+
+
+
+void add_user() {
+    
+    std::string last_name = "user_lastName2";
+    std::string first_name = "user_firstName2";
+    std::string middle_name = "user_middleName2";
+    std::vector<std::string> roles;
+    for (int i = 0; i < 5; i++)
+        roles.push_back("role" + std::to_string(i));
+    bool banned = false;
+    std::string password = PasswordPostgreSQL;
+
+
+    // Установка кодировки консоли на UTF-8
+    SetConsoleOutputCP(CP_UTF8);
+    setlocale(LC_ALL, "ru_RU.UTF-8");
+
+    try {
+        // Подключение к базе данных
+        pqxx::connection conn("host=127.0.0.1 dbname=" + dbName + " user=postgres password=" + password);
+
+        // Создание транзакции
+        pqxx::work txn(conn);
+
+        // Подготовка массива ролей для SQL-запроса
+        std::string roles_array = "{";
+        for (size_t i = 0; i < roles.size(); ++i) {
+            roles_array += "\"" + txn.esc(roles[i]) + "\""; // Экранируем и заключаем в одинарные кавычки
+            if (i < roles.size() - 1) {
+                roles_array += ", ";
+            }
+        }
+        roles_array += "}";
+        // SQL-запрос для добавления пользователя
+        std::string query = "INSERT INTO users (last_name, first_name, middle_name, roles, banned) "
+                            "VALUES ('" + txn.esc(last_name) + "', '" + txn.esc(first_name) + "', '" + txn.esc(middle_name) + "', "
+                            "'" + roles_array + "', " + (banned ? "TRUE" : "FALSE") + ")";
+
+        // Выполнение запроса
+        txn.exec(query);
+
+        // Завершение транзакции
+        txn.commit();
+
+        std::cout << "Пользователь успешно добавлен." << std::endl;
+    } catch (const std::exception &e) {
+        std::cerr << "Ошибка при добавлении пользователя: " << e.what() << std::endl;
+    }
+}
+
+
+
+
+
+std::vector<int> sql_get_array_int (const std::string& column_name, const std::string& table_name, int id)
+{
+    std::vector<int> arr;
+
+    try {
+        pqxx::connection conn("dbname=" + dbName + " user=postgres password=" + PasswordPostgreSQL + " host=127.0.0.1 port=5432");
+
+        if (conn.is_open()) {
+            pqxx::work txn(conn);       //  начало транзакции
+            std::string query = "SELECT " + column_name + " FROM " + table_name + " WHERE id = " + txn.quote(id);
+            pqxx::result result = txn.exec(query);
+
+            if (!result.empty()) {
+                pqxx::array_parser parser = result[0][0].as_array();
+                std::pair<pqxx::array_parser::juncture, std::string> elem;
+
+                while ((elem = parser.get_next()).first != pqxx::array_parser::juncture::done) {
+                    if (elem.first == pqxx::array_parser::juncture::string_value) {
+                        arr.push_back(std::stoi(elem.second));
+                    }
+                }
+            } else {
+                std::cout << "   Error." << std::endl;
+            }
+
+            txn.commit();               //  конец транзакции
+        } else {
+            std::cerr << "   Failed to connect to database." << std::endl;
+        }
+    } catch (const std::exception &e) {
+        std::cerr << "   Error: " << e.what() << std::endl;
+    }
+
+    return arr;
+}
+
+
+
+
+std::vector<std::string> sql_get_array_str(const std::string& column_name, const std::string& table_name, int id)
+{
+    std::vector<std::string> arr;
+
+    try {
+        pqxx::connection conn("dbname=" + dbName + " user=postgres password=" + PasswordPostgreSQL + " host=127.0.0.1 port=5432");
+
+        if (conn.is_open()) {
+            pqxx::work txn(conn);       //  начало транзакции
+            std::string query = "SELECT " + column_name + " FROM " + table_name + " WHERE id = " + txn.quote(id);
+            pqxx::result result = txn.exec(query);
+
+            if (!result.empty()) {
+                pqxx::array_parser parser = result[0][0].as_array();
+                std::pair<pqxx::array_parser::juncture, std::string> elem;
+
+                while ((elem = parser.get_next()).first != pqxx::array_parser::juncture::done) {
+                    if (elem.first == pqxx::array_parser::juncture::string_value) {
+                        arr.push_back(elem.second);
+                    }
+                }
+            } else {
+                std::cout << "   Error." << std::endl;
+            }
+
+            txn.commit();               //  конец транзакции
+        } else {
+            std::cerr << "   Failed to connect to database." << std::endl;
+        }
+    } catch (const std::exception &e) {
+        std::cerr << "   Error: " << e.what() << std::endl;
+    }
+
+    return arr;
+}
+
+
+
+
+
+
+std::vector<std::string> sql_get_list_str (const std::string& column_name, const std::string& table_name)
+{
+    std::vector<std::string> list;
+
+    try {
+        pqxx::connection conn("dbname=" + dbName + " user=postgres password=" + PasswordPostgreSQL + " host=127.0.0.1 port=5432");
+
+        if (conn.is_open()) {
+            pqxx::work txn(conn);       //  начало транзакции
+            pqxx::result result = txn.exec("SELECT " + column_name + " FROM " + table_name);
+
+            for (auto row : result) {
+                list.push_back(row[0].as<std::string>());
+            }
+            txn.commit();               //  конец транзакции
+        } else {
+            std::cerr << "   Failed to connect to database." << std::endl;
+        }
+    } catch (const std::exception &e) {
+        std::cerr << "   Error: " << e.what() << std::endl;
+    }
+
+    return list;
+}
+
+
+
+std::vector<int> sql_get_list_int (const std::string& column_name, const std::string& table_name)
+{
+    std::vector<int> list;
+
+    try {
+        pqxx::connection conn("dbname=" + dbName + " user=postgres password=" + PasswordPostgreSQL + " host=127.0.0.1 port=5432");
+
+        if (conn.is_open()) {
+            pqxx::work txn(conn);       //  начало транзакции
+            pqxx::result result = txn.exec("SELECT " + column_name + " FROM " + table_name);
+
+            for (auto row : result) {
+                list.push_back(row[0].as<int>());
+            }
+            txn.commit();               //  конец транзакции
+        } else {
+            std::cerr << "   Failed to connect to database." << std::endl;
+        }
+    } catch (const std::exception &e) {
+        std::cerr << "   Error: " << e.what() << std::endl;
+    }
+
+    return list;
+}
+
+
+std::string sql_get_one_str(const std::string& column_name, const std::string& table_name, int id)
+{
+    std::string one = "";
+
+    try {
+        pqxx::connection conn("dbname=" + dbName + " user=postgres password=" + PasswordPostgreSQL + " host=127.0.0.1 port=5432");
+
+        if (conn.is_open()) {
+            pqxx::work txn(conn);       //  начало транзакции
+            pqxx::result result = txn.exec("SELECT " + column_name + " FROM " + table_name + " WHERE id = " + std::to_string(id));
+
+            auto row = result[0];
+            one = row[0].as<std::string>();
+            
+            txn.commit();               //  конец транзакции
+        } else {
+            std::cerr << "   Failed to connect to database." << std::endl;
+        }
+    } catch (const std::exception &e) {
+        std::cerr << "   Error: " << e.what() << std::endl;
+    }
+
+    return one;
+}
+
+
+void sql_update_one_str(const std::string& column_name, const std::string& table_name, int id, const std::string new_value)
+{
+    try {
+        // Подключение к базе данных
+        pqxx::connection conn("dbname=" + dbName + " user=postgres password=" + PasswordPostgreSQL + " host=127.0.0.1 port=5432");
+
+        if (conn.is_open()) {
+            pqxx::work txn(conn);  // Начало транзакции
+            std::string query = 
+                "UPDATE " + table_name + " SET " + column_name + " = " + txn.quote(new_value) + " WHERE id = " + txn.quote(id);
+            txn.exec(query);
+            txn.commit();           // конец транзакции
+        } else {
+            std::cerr << "   Failed to connect to database." << std::endl;
+        }
+    } catch (const std::exception &e) {
+        std::cerr << "   Error: " << e.what() << std::endl;
+    }
 }
 
