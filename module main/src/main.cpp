@@ -5,7 +5,7 @@
 #include <iostream>
 
 #include "handlerRequest.h"
-//#include "PostgreSQL.h"
+#include "postgres.h"
 
 
 int main ()
@@ -63,8 +63,8 @@ int main ()
 //  ..............................
 
 //      тесты 
-    server.Delete("/api/db/disciplines/(\\d+)/tests/(\\d+)/quest(\\d+)", DelTestQuest);         //  Удалить вопрос из теста
-    server.Post("/api/db/disciplines/(\\d+)/tests/(\\d+)/quest(\\d+)", AddTestQuest);           //  Добавить вопрос в тест
+    server.Delete("/api/db/disciplines/(\\d+)/tests/(\\d+)/quest/(\\d+)", DelTestQuest);        //  Удалить вопрос из теста
+    server.Post("/api/db/disciplines/(\\d+)/tests/(\\d+)/quest/(\\d+)", AddTestQuest);          //  Добавить вопрос в тест
     server.Put("/api/db/disciplines/(\\d+)/tests/(\\d+)/questSequence", SetTestQuestSequence);  //  Изменить порядок следования вопросов в тесте
     server.Get("/api/db/disciplines/(\\d+)/tests/(\\d+)/users", GetQuestUsers);                 //  Посмотреть список пользователей прошедших тест
     server.Get("/api/db/disciplines/(\\d+)/tests/(\\d+)/gread", GetQuestUsers);                 //  Посмотреть оценку пользователя

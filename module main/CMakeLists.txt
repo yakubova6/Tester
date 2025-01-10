@@ -11,4 +11,5 @@ link_directories(${CMAKE_SOURCE_DIR}/src/lib)
 add_executable(main_server 
   src/main.cpp
   src/handlerRequest.cpp
+  src/postgres.cpp
 )
