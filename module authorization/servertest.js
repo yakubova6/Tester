@@ -2,7 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const jwt = require('jsonwebtoken');
 const querystring = require('querystring');
-const { sendPostRequest, addTokenToUser, generateAuthGithubUrl, generateAuthYandexUrl, addOrUpdateUser, getUserRoles, getPermissionsByRoles } = require('./auth')
+const { updateTokenState, addTokenState, generateAuthCode, verifyAuthCode, sendPostRequest, addTokenToUser, generateAuthGithubUrl, generateAuthYandexUrl, addOrUpdateUser, getUserRoles, getPermissionsByRoles } = require('./auth')
 
 const SECRET_KEY = 'your_secret_key';
 
@@ -33,6 +33,20 @@ app.get('/yandex/getlink', (req, res) => {
     const loginToken = req.query.loginToken;
     res.send(generateAuthYandexUrl(loginToken));
 });
+
+app.post('/api/auth/code/generate', (req, res) => {
+    const { loginToken } = req.body;
+
+    if (!loginToken) {
+        return res.status(400).json({ error: 'Не передан токен входа.' });
+    }
+
+    const code =  generateRandomCode(loginToken);
+    addTokenState(loginToken); 
+    console.log(code)
+    res.json({ code });
+});
+
 
 app.post('/api/auth/exchange', async (req, res) => {
     console.log(req.body)
@@ -107,7 +121,28 @@ app.post('/api/auth/exchange', async (req, res) => {
             }
 
         } else if (type === 'code') {
-
+            const { error, email, state } = verifyAuthCode(code, state);
+        
+            if (error) {
+                return res.status(400).json({ error });
+            }
+        
+            const roles = await getUserRoles(email);
+        
+            if (roles) {
+                permissionsForUser = getPermissionsByRoles(roles);
+            } else {
+                await addOrUpdateUser(email);
+                permissionsForUser = getPermissionsByRoles(['Student']);
+            }
+        
+            accessToken = jwt.sign({ permissions: permissionsForUser, userInfo: { email } }, SECRET_KEY, { expiresIn: '1m' });
+            const refreshToken = jwt.sign({ email }, SECRET_KEY, { expiresIn: '7d' });
+        
+            addTokenToUser(email, refreshToken);
+            const sessionToken = jwt.sign({ accessToken, email }, SECRET_KEY, { expiresIn: '12h' });
+        
+            res.json({ sessionToken, accessToken, refreshToken, email });
         } else {
             return res.status(400).json({ error: `Некорректный параметр state: ${state}` });
         }
