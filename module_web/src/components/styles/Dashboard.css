@@ -29,23 +29,28 @@ h2 {
     font-weight: bold; /* Жирный шрифт для заголовка */
 }
 
-/* Стили для текста пользователя */
-.dashboard-text {
-    color: #333; 
-    font-size: 1.2rem; /* Увеличенный размер шрифта */
-    margin: 20px 0; 
-    padding: 10px; /* Отступы вокруг текста */
-    background-color: #e9ecef; /* Светлый фон за текстом */
-    border-left: 4px solid #31649b; /* Левый бордер для выделения */
-    border-radius: 4px; /* Закругленные углы */
+/* Стили для полей ввода */
+.input-field {
+    width: 100%; 
+    padding: 10px; 
+    border: 1px solid #31649b; 
+    border-radius: 5px; 
+    font-size: 16px; 
+    box-sizing: border-box; 
+    margin-top: 10px; /* Отступ сверху */
+    transition: border-color 0.3s; 
 }
 
-/* Кнопка выхода */
+.input-field:focus {
+    outline: none; 
+    border-color: #2e5e92; 
+}
+
+/* Кнопки */
 .logout-button {
     display: flex; 
     align-items: center; 
     justify-content: center; 
-    margin: 5px 0; 
     padding: 10px 15px;
     background-color: #ffffff; 
     border: 1px solid #31649b; 
@@ -56,12 +61,22 @@ h2 {
     transition: background-color 0.3s, color 0.3s, transform 0.2s;
     width: 100%; 
     box-sizing: border-box;
+    flex: 1; /* Заставляет кнопки занимать равное пространство */
+    margin: 0 5px; /* Убираем расстояние между кнопками */
 }
 
 .logout-button:hover {
     background-color: #31649b; 
     color: #ffffff;
     transform: translateY(-2px); 
+}
+
+/* Группировка кнопок */
+
+.button-group {
+    display: flex;
+    justify-content: space-between; /* Разделение кнопок */
+    margin-top: 10px; /* Отступ сверху, если нужен */
 }
 
 /* Сообщение об ошибке */

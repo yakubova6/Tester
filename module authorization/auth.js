@@ -71,6 +71,34 @@ exports.addOrUpdateUser = async function (email) {
     }
 };
 
+exports.getUserIndexByEmail = async function (email) {
+    const client = new MongoClient(uri);
+
+    try {
+        await client.connect();
+        const database = client.db(dbName);
+        const collection = database.collection(collectionName);
+
+        // Получаем всех пользователей, отсортированных по email
+        const allUsers = await collection.find({}).sort({ email: 1 }).toArray();
+
+        // Находим индекс пользователя с заданным email
+        const index = allUsers.findIndex(user => user.email === email);
+
+        if (index !== -1) {
+            return index + 1; // Индексы начинаются с 0, поэтому добавляем 1
+        } else {
+            console.log("Пользователь с таким email не найден.");
+            return null;
+        }
+    } catch (error) {
+        console.error("Ошибка:", error);
+        return null;
+    } finally {
+        await client.close();
+    }
+};
+
 exports.addTokenToUser = async function (email, refreshToken) {
     const client = new MongoClient(uri);
 

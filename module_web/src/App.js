@@ -8,15 +8,14 @@ import Unauthorized from './components/errors/Unauthorized';
 import Forbidden from './components/errors/Forbidden';
 import ErrorPage from './components/errors/ErrorPage';
 import Logout from './components/Logout';
-import Users from './components/resources/Users';
-import Disciplines from './components/resources/Disciplines';
-import Tests from './components/resources/Tests';
-import Questions from './components/resources/Questions';
-import Attempts from './components/resources/Attempts';
-import Answers from './components/resources/Answers';
+import Users from './components/resources/Users/Users';
+import Disciplines from './components/resources/Disciplines/Disciplines';
+import Tests from './components/resources/Tests/Tests';
+import Questions from './components/resources/Questions/Questions'; // Импортируем Questions
+import Attempts from './components/resources/Attempts/Attempts';
+import Answers from './components/resources/Answers/Answers';
 import Login from './components/Login'; 
-import UpdateDisciplines from './components/resources/UpdateDisciplines'; 
-import CreateTest from './components/resources/CreateTest'; 
+import CreateTest from './components/resources/Tests/TestCreate'; 
 
 const App = () => {
     const [userStatus, setUserStatus] = useState('unknown');
@@ -25,13 +24,11 @@ const App = () => {
     useEffect(() => {
         const checkSession = async () => {
             try {
-                console.log("Проверка сессии..."); // Логируем начало проверки
+                console.log("Проверка сессии...");
 
-                // Проверка наличия токена сессии в куках
                 const response = await axios.get('/api/session', { withCredentials: true });
-                console.log("Ответ от /api/session:", response.data); // Логируем ответ сервера
 
-                setUserStatus(response.data.status); // Установка статуса пользователя
+                setUserStatus(response.data.status);
             } catch (error) {
                 console.error("Ошибка при проверке сессии:", error);
                 if (error.response) {
@@ -48,7 +45,7 @@ const App = () => {
                     setUserStatus('unknown');
                 }
             } finally {
-                setLoading(false); // Завершаем загрузку
+                setLoading(false);
             }
         };
 
@@ -76,7 +73,6 @@ const App = () => {
                     <Route path="/questions" element={userStatus === 'authorized' ? <Questions /> : <Navigate to="/unauthorized" />} />
                     <Route path="/attempts" element={userStatus === 'authorized' ? <Attempts /> : <Navigate to="/unauthorized" />} />
                     <Route path="/answers" element={userStatus === 'authorized' ? <Answers /> : <Navigate to="/unauthorized" />} />
-                    <Route path="/update-disciplines" element={userStatus === 'authorized' ? <UpdateDisciplines /> : <Navigate to="/unauthorized" />} />
                     <Route path="/create-test" element={userStatus === 'authorized' ? <CreateTest /> : <Navigate to="/unauthorized" />} />
                     <Route path="*" element={<Navigate to="/" />} />
                 </Routes>
