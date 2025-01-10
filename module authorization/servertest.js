@@ -2,7 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const jwt = require('jsonwebtoken');
 const querystring = require('querystring');
-const { updateTokenState, addTokenState, generateAuthCode, verifyAuthCode, sendPostRequest, addTokenToUser, generateAuthGithubUrl, generateAuthYandexUrl, addOrUpdateUser, getUserRoles, getPermissionsByRoles } = require('./auth')
+const { getUserIndexByEmail, updateTokenState, addTokenState, generateAuthCode, verifyAuthCode, sendPostRequest, addTokenToUser, generateAuthGithubUrl, generateAuthYandexUrl, addOrUpdateUser, getUserRoles, getPermissionsByRoles } = require('./auth')
 
 const SECRET_KEY = 'your_secret_key';
 
@@ -147,11 +147,12 @@ app.post('/api/auth/exchange', async (req, res) => {
             return res.status(400).json({ error: `Некорректный параметр state: ${state}` });
         }
 
-        accessToken = jwt.sign({ permissions: permissionsForUser, userInfo }, SECRET_KEY, { expiresIn: '1m' });
+        let userIdx = getUserIndexByEmail(userEmail)
+        accessToken = jwt.sign({ permissions: permissionsForUser, userInfo, userIdx }, SECRET_KEY, { expiresIn: '1m' });
         const refreshToken = jwt.sign({ email: userInfo.email }, SECRET_KEY, { expiresIn: '7d' });
         addTokenToUser(userEmail, refreshToken);
-        
-        const sessionToken = jwt.sign({ accessToken, userInfo }, SECRET_KEY, { expiresIn: '12h' });
+
+        const sessionToken = jwt.sign({ accessToken, userInfo, userIdx }, SECRET_KEY, { expiresIn: '12h' });
         res.json({ sessionToken, accessToken, refreshToken, userInfo });
 
 
