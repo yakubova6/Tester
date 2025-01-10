@@ -90,34 +90,15 @@ app.get('/api/auth/login', async (req, res) => {
 
     try {
         let authUrl;
-        if (type === 'github') {
-            // Запрашиваем ссылку у модуля авторизации с параметром loginToken
-            const response = await axios.get(`${AUTH_MODULE_URL}/github/getlink`, {
-                params: { loginToken }, // Передаем loginToken как параметр запроса
-            });
+        const response = await axios.get(`${AUTH_MODULE_URL}/${type}/getlink`, {
+            params: { loginToken }, // Передаем loginToken как параметр запроса
+        });
 
-            // Проверяем, что response.data является объектом
-            console.log("responseData:", response.data);
-            if (response.data && response.data.authUrl) {
-                authUrl = response.data.authUrl; // Извлекаем authUrl
-            } else {
-                throw new Error('Ответ не содержит authUrl');
-            }
-        } else if (type === 'yandex') {
-            // Запрашиваем ссылку у модуля авторизации с параметром loginToken
-            const response = await axios.get(`${AUTH_MODULE_URL}/yandex/getlink`, {
-                params: { loginToken }, // Передаем loginToken как параметр запроса
-            });
-
-            // Проверяем, что response.data является объектом
-            console.log("responseData:", response.data);
-            if (response.data && response.data.authUrl) {
-                authUrl = response.data.authUrl; // Извлекаем authUrl
-            } else {
-                throw new Error('Ответ не содержит authUrl');
-            }
+        console.log("responseData:", response.data);
+        if (response.data && response.data.authUrl) {
+            authUrl = response.data.authUrl; // Извлекаем authUrl
         } else {
-            return res.status(400).json({ error: 'Неподдерживаемый тип авторизации.' });
+            throw new Error('Ответ не содержит authUrl');
         }
 
         // Возвращаем URL авторизации
@@ -130,97 +111,118 @@ app.get('/api/auth/login', async (req, res) => {
 
 app.post('/api/auth/code', async (req, res) => {
     const loginToken = generateLoginToken(); // Генерация токена входа
+    const type = 'code'; // Указываем тип авторизации
 
     try {
         console.log('Отправляем запрос на генерацию кода...');
 
-        const response = await axios.post('http://localhost:8000/api/auth/code/generate',  { loginToken } );
+        const response = await axios.post('http://localhost:8000/api/auth/code/generate', { loginToken, type });
         console.log('Ответ от модуля авторизации:', response.data);
 
         const { code } = response.data; // Предполагаем, что код возвращается в response.data
 
         if (code) {
+            // Сохраняем loginToken и type в Redis с использованием code как ключ
+            await redisClient.set(code, JSON.stringify({ loginToken, type }), 'EX', 300); // Хранение на 5 минут
             // Возвращаем код клиенту
             res.json({ code });
         } else {
             throw new Error('Ответ не содержит код');
         }
     } catch (error) {
-        console.error('Ошибка при получении кода:', error);
+        console.error('Ошибка при получении кода:', error.message);
         res.status(500).json({ error: 'Ошибка при получении кода' });
     }
 });
 
-// Обработка коллбэка
+// Обработка коллбэка для GET
 app.get('/api/auth/callback', async (req, res) => {
-    const { code, state } = req.query; // Используем req.query для получения параметров
+    const { code } = req.query; // Получаем код из запроса
 
-    console.log('Получен коллбэк с кодом:', code, 'и состоянием:', state); // Логируем код и состояние
+    console.log('Получен GET коллбэк с кодом:', code);
 
     // Проверка состояния в Redis
-    const stateData = await redisClient.get(state);
+    const stateData = await redisClient.get(code);
     if (!stateData) {
-        console.log('Недействительный параметр состояния:', state); // Логируем недействительное состояние
+        console.log('Недействительный параметр состояния:', code);
         return res.status(400).json({ error: 'Invalid state parameter.' });
     }
 
     try {
-        const { loginToken, type } = JSON.parse(stateData); // Теперь также извлекаем type
-        console.log('Получен loginToken из Redis:', loginToken); // Логируем loginToken
+        const { loginToken, type } = JSON.parse(stateData);
+        console.log('Получен loginToken из Redis:', loginToken);
 
         // Запрос на получение токена доступа
         const authResponse = await axios.post('http://localhost:8000/api/auth/exchange', {
             code,
-            state,
-            type, 
+            loginToken,
+            type,
         });
 
-        console.log('Ответ от сервера авторизации:', authResponse.data); 
+        console.log('Ответ от сервера авторизации:', authResponse.data);
 
-        const { accessToken, userInfo } = authResponse.data;
+        const { accessToken, refreshToken, userInfo } = authResponse.data;
 
-        // Генерация токена доступа (JWT) для пользователя
+        // Генерация токена сессии (JWT) для пользователя
         const sessionToken = jwt.sign({ userInfo }, SECRET_KEY, { expiresIn: '1h' });
-        console.log('Сгенерирован токен сессии:', sessionToken); 
+        console.log('Сгенерирован токен сессии:', sessionToken);
 
-        // Сохранение токена доступа в Redis и отправка куки
-        await redisClient.set(sessionToken, JSON.stringify({ accessToken, userInfo }), 'EX', 3600);
-        console.log('Токен сессии сохранен в Redis с ключом:', sessionToken); 
-        
-        console.log('Установка куки с токеном:', sessionToken); 
+        // Сохранение токенов в Redis
+        await redisClient.set(sessionToken, JSON.stringify({ accessToken, refreshToken, userInfo }), 'EX', 3600);
+        console.log('Токен сессии сохранен в Redis с ключом:', sessionToken);
+
+        // Установка куки с токеном сессии
         res.cookie('session_token', sessionToken, { httpOnly: true, secure: false, sameSite: 'Lax' });
-        console.log('Кука session_token установлена:', sessionToken); 
+        console.log('Кука session_token установлена:', sessionToken);
 
-        // Перенаправление на клиентское приложение с параметрами
-        res.redirect(`/auth/callback?code=${code}&state=${state}`);
+        // Перенаправление на клиентское приложение
+        res.redirect('/'); // Измените на нужный вам URL
     } catch (error) {
-        console.error('Ошибка при обработке коллбэка:', error);
+        console.error('Ошибка при обработке коллбэка:', error.message);
         res.status(500).json({ error: 'Ошибка при обработке коллбэка' });
+    }
+});
+
+// Обработка коллбэка для POST
+app.post('/api/auth/callback', async (req, res) => {
+    const { code, refreshToken } = req.body; // Получаем код и токен обновления из запроса
+
+    try {
+        // Пересылаем запрос к модулю авторизации для проверки кода
+        const response = await axios.post('http://localhost:8000/api/auth/callback', { code, refreshToken });
+
+        if (response.data && response.data.status === 'authorized') {
+            // Успешная авторизация, обрабатываем результат
+            res.json({ status: 'authorized' });
+        } else {
+            return res.status(400).json({ error: 'Authorization failed' });
+        }
+    } catch (error) {
+        console.error('Ошибка при авторизации с кодом:', error.message);
+        res.status(500).json({ error: 'Ошибка при авторизации' });
     }
 });
 
 // Проверка сессии
 app.get('/api/session', async (req, res) => {
-
     const sessionToken = req.cookies.session_token; // Получаем сессионный токен из куки
-    console.log('Сессионный токен из куки:', sessionToken); 
+    console.log('Сессионный токен из куки:', sessionToken);
 
     if (!sessionToken) {
-        console.log('Сессионный токен не найден'); 
+        console.log('Сессионный токен не найден');
         return res.status(401).json({ status: 'unauthorized' });
     }
 
     try {
         const sessionData = await redisClient.get(sessionToken);
         if (!sessionData) {
-            console.log('Сессионные данные не найдены в Redis для токена:', sessionToken); 
+            console.log('Сессионные данные не найдены в Redis для токена:', sessionToken);
             return res.status(401).json({ status: 'unauthorized' });
         }
 
-        // console.log('Сессионные данные найдены:', sessionData); 
         res.json({ status: 'authorized' }); // Возвращаем статус авторизации
     } catch (error) {
-        console.error('Ошибка при проверке сессии:', error); // Логируем ошибки
+        console.error('Ошибка при проверке сессии:', error.message); // Логируем ошибки
         res.status(500).json({ error: 'Ошибка при проверке сессии' });
     }
 });
