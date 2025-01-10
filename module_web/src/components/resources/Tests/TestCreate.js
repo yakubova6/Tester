@@ -1,9 +1,10 @@
+// src/components/resources/Tests/CreateTest.js
 import React, { useState } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import '../styles/CreateTest.css';
+import { createTest } from './TestAPI';
+import axios from 'axios';
 
-const CreateTest = ({ permissions }) => {
+const TestCreate = ({ permissions }) => {
     const navigate = useNavigate();
     const [testName, setTestName] = useState('');
     const [testId, setTestId] = useState(null);
@@ -21,7 +22,7 @@ const CreateTest = ({ permissions }) => {
             return;
         }
         try {
-            const response = await axios.post('/api/tests', { name: testName }, { withCredentials: true });
+            const response = await createTest({ name: testName });
             setTestId(response.data.id); // Сохраняем ID созданного теста
             alert('Тест успешно создан! Теперь добавьте вопросы.');
         } catch (error) {
@@ -49,7 +50,7 @@ const CreateTest = ({ permissions }) => {
             return;
         }
         try {
-            await axios.put(`/api/tests/${testId}/questions`, { questions }, { withCredentials: true });
+            await axios.put(`/api/tests/${testId}/questions`, { questions });
             navigate('/tests'); // Перенаправляем на страницу тестов после добавления вопросов
         } catch (error) {
             console.error('Ошибка при добавлении вопросов:', error);
@@ -58,7 +59,7 @@ const CreateTest = ({ permissions }) => {
     };
 
     return (
-        <div className="create-test-container">
+        <div>
             <h2>Создать тест</h2>
             {!testId ? (
                 <>
@@ -66,11 +67,9 @@ const CreateTest = ({ permissions }) => {
                         type="text"
                         value={testName}
                         onChange={(e) => setTestName(e.target.value)}
-                        className="input-class"
                         placeholder="Название теста"
                     />
-                    <button onClick={handleCreateTest} className="login-button">Создать тест</button>
-                    <button onClick={() => navigate('/dashboard')} className="logout-button">Назад</button>
+                    <button onClick={handleCreateTest}>Создать тест</button>
                 </>
             ) : (
                 <>
@@ -85,7 +84,6 @@ const CreateTest = ({ permissions }) => {
                                     newQuestions[index].question = e.target.value;
                                     setQuestions(newQuestions);
                                 }}
-                                className="input-class"
                                 placeholder="Вопрос"
                             />
                             {q.answers.map((answer, ansIndex) => (
@@ -98,20 +96,19 @@ const CreateTest = ({ permissions }) => {
                                         newQuestions[index].answers[ansIndex] = e.target.value;
                                         setQuestions(newQuestions);
                                     }}
-                                    className="input-class"
                                     placeholder={`Ответ ${ansIndex + 1}`}
                                 />
                             ))}
-                            <button onClick={() => handleAddAnswer(index)} className="login-button">Добавить ответ</button>
+                            <button onClick={() => handleAddAnswer(index)}>Добавить ответ</button>
                         </div>
                     ))}
-                    <button onClick={handleAddQuestion} className="login-button">Добавить вопрос</button>
-                    <button onClick={handleSaveQuestions} className="logout-button">Сохранить вопросы</button>
-                    <button onClick={() => navigate('/dashboard')} className="logout-button">Назад</button>
+                    <button onClick={handleAddQuestion}>Добавить вопрос</button>
+                    <button onClick={handleSaveQuestions}>Сохранить вопросы</button>
+                    <button onClick={() => navigate('/tests')}>Назад</button>
                 </>
             )}
         </div>
     );
 };
 
-export default CreateTest;
+export default TestCreate;
