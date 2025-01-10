@@ -9,13 +9,13 @@ const collectionName = "users";
 // .. YANDEX
 const CLIENT_ID_YANDEX = '9bdb9a05b73646f580fe3b12e35b1825';
 const CLIENT_SECRET_YANDEX = 'd7ee049d87e3461baadfd34deebd4ebc';
-const REDIRECT_URI = 'http://localhost:5000/api/auth/callback';
+const REDIRECT_URI = '/api/auth/callback';
 const SCOPE = 'login:info login:email';
 
 // .. GITHUB
 const GITHUB_CLIENT_ID = 'Iv23liiWV4dof4W8N3G7';
 const GITHUB_CLIENT_SECRET = '9870570d7f11e296b3dd633fef8b7abcb2cb663e';
-const GITHUB_REDIRECT_URI = 'http://localhost:5000/api/auth/callback';
+const GITHUB_REDIRECT_URI = '/api/auth/callback';
 const GITHUB_AUTH_URL = 'https://github.com/login/oauth/authorize';
 const GITHUB_TOKEN_URL = 'https://github.com/login/oauth/access_token';
 const GITHUB_USER_URL = 'https://api.github.com/user';
@@ -25,7 +25,6 @@ exports.generateAuthYandexUrl = function (state) {
         querystring.stringify({
             response_type: 'code',
             client_id: CLIENT_ID_YANDEX,
-            redirect_uri: REDIRECT_URI,
             scope: SCOPE,
             state: state
         });
@@ -33,7 +32,7 @@ exports.generateAuthYandexUrl = function (state) {
 }
 
 exports.generateAuthGithubUrl = function (state) {
-    const authUrl = `${GITHUB_AUTH_URL}?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${GITHUB_REDIRECT_URI}&state=${state}&scope=user`;
+    const authUrl = `${GITHUB_AUTH_URL}?client_id=${GITHUB_CLIENT_ID}&state=${state}&scope=user`;
     return (JSON.stringify({ authUrl: authUrl }));
 }
 
@@ -248,3 +247,49 @@ exports.sendPostRequest = async function (name, idx, type) {
         console.error('Ошибка при отправке запроса:', error.message);
     }
 }
+
+const codesStorage = new Map();
+const tokenStates = new Map();
+
+exports.generateAuthCode = function (loginToken) {
+    const code = generateRandomCode();
+    const expirationTime = Date.now() + 1 * 60 * 1000; // Код устаревает через 1 минуту
+
+    codesStorage.set(code, { loginToken, expirationTime });
+    return code;
+};
+
+exports.verifyAuthCode = function (code, refreshToken) {
+    const codeEntry = codesStorage.get(code);
+
+    if (!codeEntry || codeEntry.expirationTime < Date.now()) {
+        return { error: 'Код отсутствует или устарел.' };
+    }
+
+    const userData = jwt.verify(refreshToken, SECRET_KEY, (err, decoded) => {
+        if (err) return null;
+        return decoded;
+    });
+
+    if (!userData) {
+        return { error: 'Неверный токен обновления.' };
+    }
+
+    codesStorage.delete(code); 
+    return { email: userData.email, state: codeEntry.loginToken };
+};
+
+exports.addTokenState = function (loginToken, expirationTime = 5 * 60 * 1000) {
+    tokenStates.set(loginToken, {
+        expiresAt: Date.now() + expirationTime,
+        status: 'pending',
+    });
+};
+
+exports.updateTokenState = function (loginToken, status) {
+    if (tokenStates.has(loginToken)) {
+        const state = tokenStates.get(loginToken);
+        state.status = status;
+        tokenStates.set(loginToken, state);
+    }
+};
