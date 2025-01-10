@@ -2,6 +2,7 @@
 #pragma once
 
 #include "checkToken.h"
+#include "postgres.h"
 
 #include <httplib.h>
 #include <jwt-cpp/jwt.h>
@@ -10,27 +11,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <pqxx/pqxx>
-#include <windows.h> // Для SetConsoleOutputCP
 
-
-std::vector<int> sql_get_array_int(const std::string& column_name, const std::string& table_name, int id);
-std::vector<std::string> sql_get_array_str(const std::string& column_name, const std::string& table_name, int id);
-
-void sql_del_from_array_int(const std::string& column_name, const std::string& table_name, int id, int num);
-void sql_add_to_array_int(const std::string& column_name, const std::string& table_name, int id, int num);
-
-std::vector<std::string> sql_get_list_str (const std::string& column_name, const std::string& table_name);
-std::vector<int> sql_get_list_int (const std::string& column_name, const std::string& table_name);
-
-std::string sql_get_one_str(const std::string& column_name, const std::string& table_name, int id);
-int sql_get_one_int(const std::string& column_name, const std::string& table_name, int id);
-bool sql_get_one_bool(const std::string& column_name, const std::string& table_name, int id);
-
-void sql_update_one_str(const std::string& column_name, const std::string& table_name, int id, const std::string new_value);
-
-void PostgresInit();
-void add_user();
 
 void AddUser(const httplib::Request& req, httplib::Response& res);
 
@@ -45,21 +26,21 @@ void GetUserTests(const httplib::Request& req, httplib::Response& res);         
 void GetUserRoles(const httplib::Request& req, httplib::Response& res);                 //  + Посмотреть информацию о пользователе (роли)                  
 void SetUserRoles(const httplib::Request& req, httplib::Response& res);                 //  Изменить роли пользователя              
 void GetUserBlock(const httplib::Request& req, httplib::Response& res);                 //  + Посмотреть заблокирован ли пользователь               
-void SetUserBlock(const httplib::Request& req, httplib::Response& res);                 //  заблокировать пользователя
-void SetUserUnblock(const httplib::Request& req, httplib::Response& res);               //  разблокировать пользователя
+void SetUserBlock(const httplib::Request& req, httplib::Response& res);                 //  + заблокировать пользователя
+void SetUserUnblock(const httplib::Request& req, httplib::Response& res);               //  + разблокировать пользователя
 
 
 //      дисциплины          --------------------------------------------------------------------------------
 
 void GetDisceplines(const httplib::Request& req, httplib::Response& res);               //  + Посмотреть список дисциплин
 void GetDisceplineInfo(const httplib::Request& req, httplib::Response& res);            //  + Посмотреть информацию о дисциплине (Название, Описание, ID преподавателя)
-void SetDisceplineInfo(const httplib::Request& req, httplib::Response& res);            //  Изменить информацию о дисциплине (Название, Описание)
-void GetDisceplineTestList(const httplib::Request& req, httplib::Response& res);        //  Посмотреть информацию о дисциплине (Список тестов)
-void GetDisceplineTestActive(const httplib::Request& req, httplib::Response& res);      //  Посмотреть информацию о тесте (Активный тест или нет)
-void SetDisceplineTestActivate(const httplib::Request& req, httplib::Response& res);    //  Активировать/Деактивировать тест
-void SetDisceplineTestDeactivate(const httplib::Request& req, httplib::Response& res);  //  Активировать/Деактивировать тест
-void AddDisceplineTest(const httplib::Request& req, httplib::Response& res);            //  ? Добавить тест в дисциплину по её id
-void DelDisceplineTest(const httplib::Request& req, httplib::Response& res);            //  Удалить тест из дисциплины (id дисциплины и теста)
+void SetDisceplineInfo(const httplib::Request& req, httplib::Response& res);            //  + Изменить информацию о дисциплине (Название, Описание)
+void GetDisceplineTestList(const httplib::Request& req, httplib::Response& res);        //  + Посмотреть информацию о дисциплине (Список тестов)
+void GetDisceplineTestActive(const httplib::Request& req, httplib::Response& res);      //  + Посмотреть информацию о тесте (Активный тест или нет)
+void SetDisceplineTestActivate(const httplib::Request& req, httplib::Response& res);    //  + Активировать тест
+void SetDisceplineTestDeactivate(const httplib::Request& req, httplib::Response& res);  //  + Деактивировать тест
+void AddDisceplineTest(const httplib::Request& req, httplib::Response& res);            //  + Добавить тест в дисциплину по её id
+void DelDisceplineTest(const httplib::Request& req, httplib::Response& res);            //  + Удалить тест из дисциплины (id дисциплины и теста)
 void GetDisceplineUserList(const httplib::Request& req, httplib::Response& res);        //  + Посмотреть информацию о дисциплине (Список студентов)
 void AddDisceplineUser(const httplib::Request& req, httplib::Response& res);            //  + Записать пользователя на дисциплину
 void DelDisceplineUser(const httplib::Request& req, httplib::Response& res);            //  + Отчислить пользователя с дисциплины
@@ -69,17 +50,17 @@ void DelDiscepline(const httplib::Request& req, httplib::Response& res);        
 
 //      вопросы             --------------------------------------------------------------------------------
 
-void GetQuestList(const httplib::Request& req, httplib::Response& res);                 //  Посмотреть список вопросов
+void GetQuestList(const httplib::Request& req, httplib::Response& res);                 //  + Посмотреть список вопросов
 void GetQuestInfo(const httplib::Request& req, httplib::Response& res);                 //  Посмотреть информацию о вопросе id вопроса и id версии вопроса
 void SetQuestInfo(const httplib::Request& req, httplib::Response& res);                 //  Изменить текст вопроса/ответов (создаётся новая версия)
-void AddQuest(const httplib::Request& req, httplib::Response& res);                     //  Создать вопрос
+void AddQuest(const httplib::Request& req, httplib::Response& res);                     //  + Создать вопрос
 void DelQuest(const httplib::Request& req, httplib::Response& res);                     //  Удалить вопрос
 
 
 //      Тесты               --------------------------------------------------------------------------------
 
 void DelTestQuest(const httplib::Request& req, httplib::Response& res);                 //  Удалить вопрос из теста
-void AddTestQuest(const httplib::Request& req, httplib::Response& res);                 //  Добавить вопрос в тест
+void AddTestQuest(const httplib::Request& req, httplib::Response& res);                 //  + Добавить вопрос в тест
 void SetTestQuestSequence(const httplib::Request& req, httplib::Response& res);         //  Изменить порядок следования вопросов в тесте
 void GetQuestUsers(const httplib::Request& req, httplib::Response& res);                //  Посмотреть список пользователей прошедших тест
 void GetTestGreads(const httplib::Request& req, httplib::Response& res);                //  Посмотреть оценку пользователя
