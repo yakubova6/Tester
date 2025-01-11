@@ -26,7 +26,9 @@ function generateRandomCode() {
 
 app.get('/github/getlink', (req, res) => {
     const loginToken = req.query.loginToken;
-    res.send(generateAuthGithubUrl(loginToken));
+    const typeReq = req.query.typeReq;
+
+    res.send(generateAuthGithubUrl(loginToken, typeReq));
 });
 
 app.get('/yandex/getlink', (req, res) => {

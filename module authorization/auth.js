@@ -39,8 +39,15 @@ exports.generateAuthYandexUrl = function (state, typeReq) {
     return (JSON.stringify({ authUrl: authUrl }));
 }
 
-exports.generateAuthGithubUrl = function (state) {
-    const authUrl = `${GITHUB_AUTH_URL}?client_id=${GITHUB_CLIENT_ID}&state=${state}&scope=user`;
+exports.generateAuthGithubUrl = function (state, typeReq) {
+
+    if (typeReq == 'web') {
+        REDIRECT_URI = 'http://localhost:5000/api/auth/callback';
+    } else {
+        REDIRECT_URI = 'http://localhost:9999/api/auth/callback';
+    }
+
+    const authUrl = `${GITHUB_AUTH_URL}?client_id=${GITHUB_CLIENT_ID}&state=${state}&scope=user&redirect_uri=${REDIRECT_URI}`;
     return (JSON.stringify({ authUrl: authUrl }));
 }
 
