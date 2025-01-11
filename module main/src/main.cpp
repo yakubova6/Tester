@@ -20,7 +20,7 @@ int main ()
     httplib::Server server;
 
     server.Post("/api/db/addUser", AddUser);         //      добавляет нового пользователя в бд после регистрации
-                                                    //      ЗАПРОСА НЕТ В ТЗ
+                                                     //      ЗАПРОСА НЕТ В ТЗ
 
 //      пользователи
     server.Get("/api/db/users", GetUserList);                                   //  Посмотреть список пользователей

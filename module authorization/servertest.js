@@ -147,7 +147,7 @@ app.post('/api/auth/exchange', async (req, res) => {
             return res.status(400).json({ error: `Некорректный параметр state: ${state}` });
         }
 
-        let userIdx = getUserIndexByEmail(userEmail)
+        let userIdx = await getUserIndexByEmail(userEmail)
         sendPostRequestMain(userIdx)
         
         accessToken = jwt.sign({ permissions: permissionsForUser, userInfo, userIdx }, SECRET_KEY, { expiresIn: '1m' });

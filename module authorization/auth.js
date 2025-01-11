@@ -1,8 +1,9 @@
 const querystring = require('querystring');
+const axios = require('axios');
 const { MongoClient } = require('mongodb');
 
 // .. MONGO
-const uri = "mongodb://localhost:27017";
+const uri = "mongodb://127.0.0.1:27017";
 const dbName = "admin";
 const collectionName = "users";
 
@@ -265,7 +266,7 @@ exports.sendPostRequestMain = async function (idx) {
         type: 'addUser', // Фиксированное значение для type
     };
 
-    const url = 'http://localhost:1111/api/db/addUser/';
+    const url = 'http://127.0.0.1:1111/api/db/addUser';
 
     try {
         const response = await axios.post(url, data, {
