@@ -31,7 +31,8 @@ app.get('/github/getlink', (req, res) => {
 
 app.get('/yandex/getlink', (req, res) => {
     const loginToken = req.query.loginToken;
-    res.send(generateAuthYandexUrl(loginToken));
+    const typeReq = req.query.typeReq;
+    res.send(generateAuthYandexUrl(loginToken, typeReq));
 });
 
 app.post('/api/auth/code/generate', (req, res) => {
