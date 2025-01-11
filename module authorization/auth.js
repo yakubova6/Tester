@@ -261,7 +261,7 @@ exports.getPermissionsByRoles = function (roles) {
 
 exports.sendPostRequestMain = async function (idx) {
     const data = {
-        idx: idx,
+        uid: idx,
         type: 'addUser', // Фиксированное значение для type
     };
 
