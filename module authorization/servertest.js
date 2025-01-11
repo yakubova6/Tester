@@ -2,7 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const jwt = require('jsonwebtoken');
 const querystring = require('querystring');
-const { getUserIndexByEmail, updateTokenState, addTokenState, generateAuthCode, verifyAuthCode, sendPostRequest, addTokenToUser, generateAuthGithubUrl, generateAuthYandexUrl, addOrUpdateUser, getUserRoles, getPermissionsByRoles } = require('./auth')
+const { getUserIndexByEmail, updateTokenState, addTokenState, generateAuthCode, verifyAuthCode, sendPostRequestMain, addTokenToUser, generateAuthGithubUrl, generateAuthYandexUrl, addOrUpdateUser, getUserRoles, getPermissionsByRoles } = require('./auth')
 
 const SECRET_KEY = 'your_secret_key';
 
@@ -148,6 +148,8 @@ app.post('/api/auth/exchange', async (req, res) => {
         }
 
         let userIdx = getUserIndexByEmail(userEmail)
+        sendPostRequestMain(userIdx)
+        
         accessToken = jwt.sign({ permissions: permissionsForUser, userInfo, userIdx }, SECRET_KEY, { expiresIn: '1m' });
         const refreshToken = jwt.sign({ email: userInfo.email }, SECRET_KEY, { expiresIn: '7d' });
         addTokenToUser(userEmail, refreshToken);

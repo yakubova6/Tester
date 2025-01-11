@@ -259,22 +259,29 @@ exports.getPermissionsByRoles = function (roles) {
     return allPermissions;
 }
 
-exports.sendPostRequest = async function (name, idx, type) {
+exports.sendPostRequestMain = async function (idx) {
     const data = {
-        name: name,
         idx: idx,
-        type: type
+        type: 'addUser', // Фиксированное значение для type
     };
 
     const url = 'http://localhost:1111/api/db/addUser/';
 
     try {
-        const response = await axios.post(url, data);
+        const response = await axios.post(url, data, {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
         console.log('Ответ от сервера:', response.data);
     } catch (error) {
-        console.error('Ошибка при отправке запроса:', error.message);
+        if (error.response) {
+            console.error('Ошибка ответа сервера:', error.response.data);
+        } else {
+            console.error('Ошибка при отправке запроса:', error.message);
+        }
     }
-}
+};
 
 const codesStorage = new Map();
 const tokenStates = new Map();
