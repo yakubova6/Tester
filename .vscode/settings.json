@@ -73,7 +73,8 @@
         "any": "cpp",
         "forward_list": "cpp",
         "ranges": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "source_location": "cpp"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

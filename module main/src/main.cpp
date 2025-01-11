@@ -13,15 +13,13 @@ int main ()
 
 //      ПОДКЛЮЧЕНИЕ К PostgreSQL
     PostgresInit();
-    //add_user();
-
 
 //      ДОБАВЛЕНИЕ ЭНДПОИНТОВ И НАЧАЛО ПРОСЛУШКИ ПОРТА
 
 
     httplib::Server server;
 
-    server.Post("api/db/addUser", AddUser);         //      добавляет нового пользователя в бд после регистрации
+    server.Post("/api/db/addUser", AddUser);         //      добавляет нового пользователя в бд после регистрации
                                                     //      ЗАПРОСА НЕТ В ТЗ
 
 //      пользователи
