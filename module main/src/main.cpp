@@ -22,6 +22,7 @@ int main ()
     httplib::Server server;
 
     server.Post("api/db/addUser", AddUser);         //      добавляет нового пользователя в бд после регистрации
+                                                    //      ЗАПРОСА НЕТ В ТЗ
 
 //      пользователи
     server.Get("/api/db/users", GetUserList);                                   //  Посмотреть список пользователей
@@ -69,6 +70,9 @@ int main ()
     server.Get("/api/db/disciplines/(\\d+)/tests/(\\d+)/users", GetQuestUsers);                 //  Посмотреть список пользователей прошедших тест
     server.Get("/api/db/disciplines/(\\d+)/tests/(\\d+)/gread", GetQuestUsers);                 //  Посмотреть оценку пользователя
     server.Get("/api/db/disciplines/(\\d+)/tests/(\\d+)/answer", GetTestAnswers);               //  Посмотреть ответы пользователя
+
+    server.Get("/api/db/disciplines/(\\d+)/tests/(\\d+)", GetTestQuests);                       //  возвращает массив id вопросов для теста
+                                                                                                //  ЗАПРОСА НЕТ В ТЗ
 //  ..............................
 
 //      попытки

@@ -26,7 +26,45 @@ void AddUser(const httplib::Request& req, httplib::Response& res)
     *   только для модуля авторизации
     */
 
-   //   TODO
+    std::cout << "Add new user. Student + Teacher." << std::endl;
+
+    int uid = nlohmann::json::parse(req.body)["uid"];
+    std::string last_name = "user_lastName-" + std::to_string(uid);
+    std::string first_name = "user_firstName-" + std::to_string(uid);
+    std::string middle_name = "user_middleName-" + std::to_string(uid);
+    std::vector<std::string> roles;
+    roles.push_back("Student");
+    roles.push_back("Teacher");
+    bool banned = false;
+
+    // Установка кодировки консоли на UTF-8
+    SetConsoleOutputCP(CP_UTF8);
+    setlocale(LC_ALL, "ru_RU.UTF-8");
+
+    try {
+        pqxx::connection conn("host=127.0.0.1 dbname=" + get_db_name() + " user=postgres password=" + get_db_password());
+        pqxx::work txn(conn);
+
+        // Подготовка массива ролей для SQL-запроса
+        std::string roles_array = "{";
+        for (size_t i = 0; i < roles.size(); ++i) {
+            roles_array += "\"" + txn.esc(roles[i]) + "\"";
+            if (i < roles.size() - 1) {
+                roles_array += ", ";
+            }
+        }
+        roles_array += "}";
+        // SQL-запрос для добавления пользователя
+        std::string query = "INSERT INTO users (id, last_name, first_name, middle_name, roles, banned) "
+                            "VALUES ('"+ txn.esc(std::to_string(uid)) + "', '" + txn.esc(last_name) + "', '" + txn.esc(first_name) + "', '" + txn.esc(middle_name) + "', "
+                            "'" + roles_array + "', " + (banned ? "TRUE" : "FALSE") + ")";
+        txn.exec(query);
+        txn.commit();       // Завершение транзакции
+
+        std::cout << "User added successfully." << std::endl;
+    } catch (const std::exception &e) {
+        std::cerr << "Error adding user: " << e.what() << std::endl;
+    }
 }
 
 
@@ -1106,6 +1144,31 @@ void GetTestAnswers(const httplib::Request& req, httplib::Response& res)
         user["id"] = i;
         jsonRes["users"].push_back(user);
     }
+
+    res.set_content(jsonRes.dump(), "application/json");
+
+
+    std::cout << "   End." << std::endl;
+}
+
+//  Возвращает тест
+void GetTestQuests(const httplib::Request& req, httplib::Response& res)
+{
+    /*
+    *   Возвращает название теста, массив id вопросов
+    */
+
+    std::cout << "Add attempt:" << std::endl;
+    auto permission = CheckToken(req);
+    if (Unauthorized(res, permission)) return;
+
+    int disid = std::stoi(req.matches[1]);
+    int testid = std::stoi(req.matches[2]);
+    nlohmann::json jsonRes;
+    jsonRes["questions"] = nlohmann::json::array();
+    std::vector<int> qid = sql_get_array_int("question_ids", "tests", testid);
+    for (auto i : qid)
+        jsonRes["questions"].push_back(i);
 
     res.set_content(jsonRes.dump(), "application/json");
 
