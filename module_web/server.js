@@ -137,14 +137,14 @@ app.post('/api/auth/code', async (req, res) => {
 
 // Обработка коллбэка для GET
 app.get('/api/auth/callback', async (req, res) => {
-    const { code } = req.query; // Получаем код из запроса
+    const { code, state } = req.query; // Получаем код из запроса
 
-    console.log('Получен GET коллбэк с кодом:', code);
+    console.log('Получен GET коллбэк с кодом:', code, "и состоянием: ", state);
 
     // Проверка состояния в Redis
-    const stateData = await redisClient.get(code);
+    const stateData = await redisClient.get(state)
     if (!stateData) {
-        console.log('Недействительный параметр состояния:', code);
+        console.log('Недействительный параметр состояния:', state);
         return res.status(400).json({ error: 'Invalid state parameter.' });
     }
 
