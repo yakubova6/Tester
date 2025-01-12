@@ -76,7 +76,7 @@ exports.addOrUpdateUser = async function (email) {
             };
 
             const result = await collection.insertOne(newUserData);
-            return newUserData;
+            return { newUserData, userCount };
         }
     } catch (error) {
         console.error("Ошибка:", error);
