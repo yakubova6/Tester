@@ -17,13 +17,13 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/spf13/viper"
 
-	"bot/front" // Импорт пакета front
+	"bot/front" 
 )
 
 var (
 	rdb             *redis.Client
-	registeredUsers = make(map[int64]bool) // Словарь для хранения зарегистрированных пользователей
-	bot             *tgbotapi.BotAPI       // Глобальная переменная для бота
+	registeredUsers = make(map[int64]bool) 
+	bot             *tgbotapi.BotAPI       
 )
 
 // Инициализация конфигурации
