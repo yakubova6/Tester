@@ -11,39 +11,34 @@ import Logout from './components/Logout';
 import Users from './components/resources/Users/Users';
 import Disciplines from './components/resources/Disciplines/Disciplines';
 import Tests from './components/resources/Tests/Tests';
-import Questions from './components/resources/Questions/Questions'; // Импортируем Questions
+import Questions from './components/resources/Questions/Questions'; 
 import Attempts from './components/resources/Attempts/Attempts';
 import Answers from './components/resources/Answers/Answers';
 import Login from './components/Login'; 
 import CreateTest from './components/resources/Tests/TestCreate'; 
+import DisciplineCreate from './components/resources/Disciplines/DisciplineCreate'; // Импортируем новый компонент
 
 const App = () => {
     const [userStatus, setUserStatus] = useState('unknown');
+    const [userData, setUserData] = useState(null); // Для хранения данных пользователя
     const [loading, setLoading] = useState(true);
+
 
     useEffect(() => {
         const checkSession = async () => {
             try {
                 console.log("Проверка сессии...");
-
                 const response = await axios.get('/api/session', { withCredentials: true });
-
                 setUserStatus(response.data.status);
+                
+                // Для тестирования назначаем две роли
+                setUserData({
+                    ...response.data.user,
+                    roles: ['Teacher', 'Student'], // Добавляем обе роли для тестирования
+                });
             } catch (error) {
                 console.error("Ошибка при проверке сессии:", error);
-                if (error.response) {
-                    console.error("Статус ошибки:", error.response.status);
-                    if (error.response.status === 401) {
-                        console.log("Пользователь не авторизован (401)");
-                        setUserStatus('unknown');
-                    } else {
-                        console.log("Произошла другая ошибка, статус:", error.response.status);
-                        setUserStatus('unknown');
-                    }
-                } else {
-                    console.error("Ошибка при настройке запроса:", error.message);
-                    setUserStatus('unknown');
-                }
+                setUserStatus('unknown');
             } finally {
                 setLoading(false);
             }
@@ -68,7 +63,8 @@ const App = () => {
                     <Route path="/forbidden" element={<Forbidden />} />
                     <Route path="/error" element={<ErrorPage />} />
                     <Route path="/users" element={userStatus === 'authorized' ? <Users /> : <Navigate to="/unauthorized" />} />
-                    <Route path="/disciplines" element={userStatus === 'authorized' ? <Disciplines /> : <Navigate to="/unauthorized" />} />
+                    <Route path="/disciplines" element={userStatus === 'authorized' ? <Disciplines userRole={userData?.role} userId={userData?.id} /> : <Navigate to="/unauthorized" />} />
+                    <Route path="/disciplines/create" element={userStatus === 'authorized' ? <DisciplineCreate /> : <Navigate to="/unauthorized" />} />
                     <Route path="/tests" element={userStatus === 'authorized' ? <Tests /> : <Navigate to="/unauthorized" />} />
                     <Route path="/questions" element={userStatus === 'authorized' ? <Questions /> : <Navigate to="/unauthorized" />} />
                     <Route path="/attempts" element={userStatus === 'authorized' ? <Attempts /> : <Navigate to="/unauthorized" />} />
