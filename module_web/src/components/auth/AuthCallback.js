@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie'; // Не забудьте импортировать js-cookie, если еще не сделали это
 
 // Ваш коллбэк на клиенте
 const AuthCallback = ({ setUserStatus }) => {
@@ -14,6 +15,7 @@ const AuthCallback = ({ setUserStatus }) => {
 
         // Проверка наличия кода и соответствия состояния
         if (!code || returnedState !== savedState) {
+            console.error('Код авторизации отсутствует или состояние не совпадает.');
             navigate('/login');
             return;
         }
@@ -22,14 +24,34 @@ const AuthCallback = ({ setUserStatus }) => {
         localStorage.removeItem('auth_state');
         
         console.log('Отправка кода:', code, 'и состояния:', returnedState);
+        
         // Отправка POST-запроса на сервер
         axios.post('/api/auth/callback', { code, state: returnedState })
             .then((response) => {
-                // Установка состояния пользователя
-                setUserStatus(response.data.status); // Устанавливаем статус пользователя на 'authorized'
-                
-                // Перенаправление на страницу Dashboard
-                navigate('/dashboard');
+                if (response.data && response.data.success) {
+                    // Извлечение accessToken и refreshToken из ответа
+                    const { accessToken, refreshToken } = response.data;
+                    
+                    // Сохранение токенов в куки
+                    if (accessToken) {
+                        Cookies.set('access_token', accessToken); // Сохраняем accessToken в куки
+                        console.log('Сохранен токен доступа в куки:', accessToken);
+                    }
+                    if (refreshToken) {
+                        Cookies.set('refresh_token', refreshToken); // Сохраняем refreshToken в куки
+                        console.log('Сохранен токен обновления в куки:', refreshToken);
+                    }
+
+                    // Установка состояния пользователя
+                    setUserStatus('authorized'); // Устанавливаем статус пользователя на 'authorized'
+                    console.log('Авторизация успешна:', response.data);
+                    
+                    // Перенаправление на страницу Dashboard
+                    navigate('/dashboard');
+                } else {
+                    console.error('Ошибка авторизации:', response.data);
+                    navigate('/login'); // Перенаправление на страницу логина
+                }
             })
             .catch((error) => {
                 console.error('Ошибка при авторизации:', error);
