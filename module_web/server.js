@@ -1,6 +1,6 @@
 const express = require('express');
 const axios = require('axios');
-const redis = require('redis');
+const redis = require('redis'); // Исправлено: добавлено 'redis'
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -35,14 +35,30 @@ redisClient.connect().then(() => {
 });
 
 // Убедитесь, что секретный ключ загружен из переменных окружения
-const SECRET_KEY = 'your_secret_key';
+const SECRET_KEY = process.env.SECRET_KEY || 'your_secret_key';
 
-if (!SECRET_KEY) {
-    console.error('SECRET_KEY is not defined in the environment variables');
-    process.exit(1); // Завершить процесс, если SECRET_KEY не задан
-}
+const handleAuthCallback = async (code, refreshToken) => {
+    console.log('handleAuthCallback вызван с параметрами:', { code, refreshToken });
 
-const AUTH_MODULE_URL = 'http://localhost:8000'; 
+    // Проверка на наличие refreshToken
+    if (!refreshToken) {
+        throw new Error('refreshToken отсутствует');
+    }
+
+    try {
+        const authResponse = await axios.post('http://localhost:8000/api/auth/exchange', {
+            code,
+            refreshToken
+        });
+        console.log('Ответ от модуля авторизации:', authResponse.data);
+        
+        // Возвращаем данные, которые могут включать новый токен
+        return authResponse.data; 
+    } catch (error) {
+        console.error('Ошибка при обмене кода на токены:', error.response?.data || error.message);
+        throw new Error(error.response?.data?.error || 'Ошибка при обмене кода на токены');
+    }
+};
 
 // Middleware для проверки JWT токена доступа
 const verifyToken = (req, res, next) => {
@@ -67,9 +83,10 @@ const verifyToken = (req, res, next) => {
         next(); // Продолжаем выполнение следующего middleware или маршрута
     });
 };
+
 // Генерация loginToken
 function generateLoginToken() {
-    return crypto.randomBytes(16).toString('hex'); // Случайная строка
+    return crypto.randomBytes(16).toString('hex');
 }
 
 // Аутентификация
@@ -82,7 +99,7 @@ app.get('/api/auth/login', async (req, res) => {
 
     const loginToken = generateLoginToken(); // Генерация токена входа
     const state = loginToken;
-
+    const typeReq = "web";
     console.log('Сгенерирован loginToken и state:', state); // Логируем loginToken и state
 
     // Сохраняем state, loginToken и type в Redis
@@ -90,8 +107,8 @@ app.get('/api/auth/login', async (req, res) => {
 
     try {
         let authUrl;
-        const response = await axios.get(`${AUTH_MODULE_URL}/${type}/getlink`, {
-            params: { loginToken }, // Передаем loginToken как параметр запроса
+        const response = await axios.get(`http://localhost:8000/${type}/getlink`, {
+            params: { loginToken, typeReq }, // Передаем loginToken как параметр запроса
         });
 
         console.log("responseData:", response.data);
@@ -108,24 +125,24 @@ app.get('/api/auth/login', async (req, res) => {
         res.status(500).json({ error: 'Ошибка при запросе ссылки у модуля авторизации' });
     }
 });
-
+// Генерация кода
 app.post('/api/auth/code', async (req, res) => {
-    const loginToken = generateLoginToken(); // Генерация токена входа
-    const type = 'code'; // Указываем тип авторизации
+    const loginToken = generateLoginToken(); // Генерация нового уникального токена
+    const type = 'code';
 
     try {
         console.log('Отправляем запрос на генерацию кода...');
 
+        // Отправляем запрос к модулю авторизации
         const response = await axios.post('http://localhost:8000/api/auth/code/generate', { loginToken, type });
         console.log('Ответ от модуля авторизации:', response.data);
 
-        const { code } = response.data; // Предполагаем, что код возвращается в response.data
+        const { code } = response.data; // Извлекаем код из ответа
 
         if (code) {
-            // Сохраняем loginToken и type в Redis с использованием code как ключ
-            await redisClient.set(code, JSON.stringify({ loginToken, type }), 'EX', 300); // Хранение на 5 минут
-            // Возвращаем код клиенту
-            res.json({ code });
+            // Сохраняем код и loginToken в Redis
+            await redisClient.set(code, JSON.stringify({ loginToken, expiry: Date.now() + 5 * 60 * 1000 }), 'EX', 300); // Код действителен 5 минут
+            return res.json({ code, loginToken }); // Возвращаем код и loginToken клиенту
         } else {
             throw new Error('Ответ не содержит код');
         }
@@ -135,71 +152,115 @@ app.post('/api/auth/code', async (req, res) => {
     }
 });
 
-// Обработка коллбэка для GET
+// Обработка коллбэка для GET и POST
 app.get('/api/auth/callback', async (req, res) => {
-    const { code, state } = req.query; // Получаем код из запроса
+    const { code, state } = req.query;
 
-    console.log('Получен GET коллбэк с кодом:', code, "и состоянием: ", state);
+    if (!code || !state) {
+        return res.status(400).json({ error: 'Code and state parameters are required.' });
+    }
 
-    // Проверка состояния в Redis
-    const stateData = await redisClient.get(state)
+    console.log('Получен GET коллбэк с кодом:', code, "и состоянием:", state);
+
+    // Извлекаем данные состояния из Redis
+    const stateData = await redisClient.get(state);
+    console.log('Полученные данные из Redis для состояния:', stateData);
     if (!stateData) {
         console.log('Недействительный параметр состояния:', state);
         return res.status(400).json({ error: 'Invalid state parameter.' });
     }
 
     try {
-        const { loginToken, type } = JSON.parse(stateData);
+        const { loginToken, type } = JSON.parse(stateData); // Извлекаем loginToken и type
         console.log('Получен loginToken из Redis:', loginToken);
 
-        // Запрос на получение токена доступа
+        // Запрос к серверу авторизации для обмена кода на токены
         const authResponse = await axios.post('http://localhost:8000/api/auth/exchange', {
             code,
-            loginToken,
             type,
+            state // передаем state для дальнейшей проверки
         });
 
         console.log('Ответ от сервера авторизации:', authResponse.data);
 
         const { accessToken, refreshToken, userInfo } = authResponse.data;
+        console.log("RefreshToken перед проверкой:", refreshToken);
 
-        // Генерация токена сессии (JWT) для пользователя
+        // Проверка наличия refreshToken
+        if (!refreshToken) {
+            console.error('Ошибка: refreshToken не получен от сервера авторизации.');
+            return res.status(500).json({ error: 'refreshToken не получен.' });
+        }
+
+        console.log("RefreshToken после проверки:", refreshToken);
+        // Сохраняем refreshToken в Redis под уникальным ключом, чтобы не перезаписывать
+        await redisClient.set(`refreshToken:${loginToken}`, JSON.stringify({ refreshToken }), 'EX', 3600); 
+        console.log('refreshToken сохранен в Redis под ключом:', `refreshToken:${loginToken}`);
+
         const sessionToken = jwt.sign({ userInfo }, SECRET_KEY, { expiresIn: '1h' });
-        console.log('Сгенерирован токен сессии:', sessionToken);
-
-        // Сохранение токенов в Redis
         await redisClient.set(sessionToken, JSON.stringify({ accessToken, refreshToken, userInfo }), 'EX', 3600);
         console.log('Токен сессии сохранен в Redis с ключом:', sessionToken);
 
-        // Установка куки с токеном сессии
         res.cookie('session_token', sessionToken, { httpOnly: true, secure: false, sameSite: 'Lax' });
         console.log('Кука session_token установлена:', sessionToken);
 
-        // Перенаправление на клиентское приложение
-        res.redirect('/'); // Измените на нужный вам URL
+        res.redirect('/');
     } catch (error) {
         console.error('Ошибка при обработке коллбэка:', error.message);
         res.status(500).json({ error: 'Ошибка при обработке коллбэка' });
     }
 });
+// Обработчик для проверки кода
+app.post('/api/auth/verify-code', async (req, res) => {
+    const { code, sessionToken } = req.body; // Используем sessionToken вместо loginToken
+    console.log('Получен код для проверки:', code);
+    console.log('Получен sessionToken для проверки:', sessionToken);
 
-// Обработка коллбэка для POST
-app.post('/api/auth/callback', async (req, res) => {
-    const { code, refreshToken } = req.body; // Получаем код и токен обновления из запроса
+    // Извлекаем данные сессии из Redis по sessionToken
+    const sessionData = await redisClient.get(sessionToken);
+    if (!sessionData) {
+        console.error('Данные сессии не найдены для sessionToken:', sessionToken);
+        return res.status(400).json({ error: 'Session data not found' });
+    }
 
+    const { refreshToken } = JSON.parse(sessionData);
+    console.log('Извлеченный refreshToken:', refreshToken);
+
+    // Проверяем код авторизации
+    const codeData = await redisClient.get(code);
+    if (!codeData) {
+        console.error('Код недействителен или истек:', code);
+        return res.status(400).json({ error: 'Invalid or expired code' });
+    }
+
+    const { expiry } = JSON.parse(codeData);
+    if (Date.now() > expiry) {
+        console.error('Код истек:', code);
+        return res.status(400).json({ error: 'Code has expired' });
+    }
+
+    // Проверяем refreshToken и продолжаем процесс авторизации
     try {
-        // Пересылаем запрос к модулю авторизации для проверки кода
-        const response = await axios.post('http://localhost:8000/api/auth/callback', { code, refreshToken });
+        const authData = await handleAuthCallback(code, refreshToken);
+        console.log('Данные авторизации получены:', authData);
 
-        if (response.data && response.data.status === 'authorized') {
-            // Успешная авторизация, обрабатываем результат
-            res.json({ status: 'authorized' });
-        } else {
-            return res.status(400).json({ error: 'Authorization failed' });
+        if (!authData || !authData.accessToken || !authData.userInfo || !authData.refreshToken) {
+            throw new Error('Не удалось получить необходимые данные из авторизации');
         }
+
+        const { accessToken, refreshToken: newRefreshToken, userInfo } = authData;
+
+        const newSessionToken = jwt.sign({ userInfo }, SECRET_KEY, { expiresIn: '1h' });
+        await redisClient.set(newSessionToken, JSON.stringify({ accessToken, refreshToken: newRefreshToken, userInfo }), 'EX', 3600);
+        console.log('Токен сессии сохранен в Redis с ключом:', newSessionToken);
+
+        res.cookie('session_token', newSessionToken, { httpOnly: true, secure: false, sameSite: 'Lax' });
+        console.log('Кука session_token установлена:', newSessionToken);
+
+        res.json({ success: true, userInfo });
     } catch (error) {
-        console.error('Ошибка при авторизации с кодом:', error.message);
-        res.status(500).json({ error: 'Ошибка при авторизации' });
+        console.error('Ошибка при обмене кода на токены:', error.message);
+        res.status(500).json({ error: 'Ошибка при обмене кода на токены' });
     }
 });
 
@@ -220,7 +281,8 @@ app.get('/api/session', async (req, res) => {
             return res.status(401).json({ status: 'unauthorized' });
         }
 
-        res.json({ status: 'authorized' }); // Возвращаем статус авторизации
+        const { userInfo } = JSON.parse(sessionData); // Извлекаем информацию о пользователе
+        res.json({ status: 'authorized', userInfo }); // Возвращаем статус авторизации и информацию о пользователе
     } catch (error) {
         console.error('Ошибка при проверке сессии:', error.message); // Логируем ошибки
         res.status(500).json({ error: 'Ошибка при проверке сессии' });
@@ -246,7 +308,7 @@ app.post('/api/logout', async (req, res) => {
         res.status(200).json({ message: 'Logged out successfully' });
     } catch (error) {
         console.error('Ошибка при выходе:', error);
-        handleError(res, error);
+        res.status(500).json({ error: 'Ошибка при выходе' });
     }
 });
 
@@ -286,6 +348,19 @@ app.get('/api/disciplines', verifyToken, async (req, res) => {
     }
 });
 
+// Получить дисциплины, на которые записан пользователь по его ID
+app.get('/api/user/:id/courses', verifyToken, async (req, res) => {
+    try {
+        const userId = req.params.id; // Получаем ID пользователя из URL
+        const token = req.cookies.session_token; // Получаем токен
+        // Отправляем запрос к главному модулю
+        const disciplines = await sendRequestToDBModule('GET', `/api/db/users/${userId}/courses`, {}, token);
+        res.status(200).json(disciplines);
+    } catch (error) {
+        handleError(res, error);
+    }
+});
+
 // Получить информацию о конкретной дисциплине по её ID
 app.get('/api/disciplines/:id', verifyToken, async (req, res) => {
     try {
@@ -302,10 +377,13 @@ app.get('/api/disciplines/:id', verifyToken, async (req, res) => {
 app.post('/api/disciplines', verifyToken, async (req, res) => {
     try {
         const { name, description } = req.body;
+        console.log('Creating discipline with data:', { name, description }); // Логируем данные
         const token = req.cookies.session_token;
+        
         const newDiscipline = await sendRequestToDBModule('POST', '/api/db/disciplines', { name, description }, token);
         res.status(201).json(newDiscipline);
     } catch (error) {
+        console.error('Error creating discipline:', error);
         handleError(res, error);
     }
 });
