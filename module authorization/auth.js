@@ -76,7 +76,7 @@ exports.addOrUpdateUser = async function (email) {
             };
 
             const result = await collection.insertOne(newUserData);
-            return { newUserData, userCount };
+            return newUserData;
         }
     } catch (error) {
         console.error("Ошибка:", error);
@@ -94,8 +94,8 @@ exports.getUserIndexByEmail = async function (email) {
         const database = client.db(dbName);
         const collection = database.collection(collectionName);
 
-        // Получаем всех пользователей, отсортированных по email
-        const allUsers = await collection.find({}).sort({ email: 1 }).toArray();
+        // Получаем всех пользователей, отсортированных по дате создания (или аналогичному полю)
+        const allUsers = await collection.find({}).sort({ createdAt: -1 }).toArray(); // -1 для сортировки по убыванию
 
         // Находим индекс пользователя с заданным email
         const index = allUsers.findIndex(user => user.email === email);
@@ -113,6 +113,7 @@ exports.getUserIndexByEmail = async function (email) {
         await client.close();
     }
 };
+
 
 exports.addTokenToUser = async function (email, refreshToken) {
     const client = new MongoClient(uri);

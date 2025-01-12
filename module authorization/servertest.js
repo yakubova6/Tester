@@ -61,9 +61,8 @@ app.post('/api/auth/exchange', async (req, res) => {
     try {
         let userInfo;
         let accessToken;
-        let permissionsForUser;
-        let userEmail;
-        let globalUserCount = 0;
+        let permissionsForUser
+        let userEmail
 
         if (type === 'github') {
             const response = await axios.post('https://github.com/login/oauth/access_token', {
@@ -88,9 +87,7 @@ app.post('/api/auth/exchange', async (req, res) => {
             if (roles) {
                 permissionsForUser = getPermissionsByRoles(roles)
             } else {
-                const { newUserData, userCount } = await addOrUpdateUser(userEmail);
-                globalUserCount = userCount;
-
+                await addOrUpdateUser(userEmail);
                 permissionsForUser = getPermissionsByRoles(['Student'])
             }
             
@@ -122,8 +119,7 @@ app.post('/api/auth/exchange', async (req, res) => {
             if (roles) {
                 permissionsForUser = getPermissionsByRoles(roles)
             } else {
-                const { newUserData, userCount } = await addOrUpdateUser(userEmail);
-                globalUserCount = userCount;
+                await addOrUpdateUser(userEmail);
                 permissionsForUser = getPermissionsByRoles(['Student'])
             }
 
@@ -153,12 +149,15 @@ app.post('/api/auth/exchange', async (req, res) => {
         } else {
             return res.status(400).json({ error: `Некорректный параметр state: ${state}` });
         }
+
+        let userIdx = await getUserIndexByEmail(userEmail)
+        sendPostRequestMain(userIdx)
         
-        accessToken = jwt.sign({ permissions: permissionsForUser, userInfo, globalUserCount }, SECRET_KEY, { expiresIn: '1m' });
+        accessToken = jwt.sign({ permissions: permissionsForUser, userInfo, userIdx }, SECRET_KEY, { expiresIn: '1m' });
         const refreshToken = jwt.sign({ email: userInfo.email }, SECRET_KEY, { expiresIn: '7d' });
         addTokenToUser(userEmail, refreshToken);
 
-        const sessionToken = jwt.sign({ accessToken, userInfo, globalUserCount }, SECRET_KEY, { expiresIn: '12h' });
+        const sessionToken = jwt.sign({ accessToken, userInfo, userIdx }, SECRET_KEY, { expiresIn: '12h' });
         res.json({ sessionToken, accessToken, refreshToken, userInfo });
 
 
