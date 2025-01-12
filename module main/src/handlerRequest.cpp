@@ -2,6 +2,15 @@
 #include "handlerRequest.h"
 
 
+void handle_unmatched_request(const httplib::Request& req, httplib::Response& res)
+{
+    std::cout << "Unmatched request: " << req.method << " " << req.path << std::endl;
+    std::cout << "Params: " << req.body << std::endl;
+    res.status = 404;
+    res.set_content("Not Found", "text/plain");
+}
+
+
 bool Unauthorized(httplib::Response& res, std::unordered_map<jwt::traits::kazuho_picojson::string_type, jwt::claim> permission)
 {
     //return false;

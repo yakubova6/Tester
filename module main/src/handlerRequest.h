@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 
-
+void handle_unmatched_request(const httplib::Request& req, httplib::Response& res);
 void AddUser(const httplib::Request& req, httplib::Response& res);                      //  + добавляет нового пользователя
                                                                                         //  ЗАПРОСА НЕТ В ТЗ
 

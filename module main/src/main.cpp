@@ -5,7 +5,6 @@
 #include <iostream>
 
 #include "handlerRequest.h"
-#include "postgres.h"
 
 
 int main ()
@@ -18,6 +17,8 @@ int main ()
 
 
     httplib::Server server;
+
+    server.set_error_handler(handle_unmatched_request);
 
     server.Post("/api/db/addUser", AddUser);         //      добавляет нового пользователя в бд после регистрации
                                                      //      ЗАПРОСА НЕТ В ТЗ
