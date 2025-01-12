@@ -10,24 +10,46 @@ void handle_unmatched_request(const httplib::Request& req, httplib::Response& re
     res.set_content("Not Found", "text/plain");
 }
 
-
 bool Unauthorized(httplib::Response& res, std::unordered_map<jwt::traits::kazuho_picojson::string_type, jwt::claim> permission)
 {
-    //return false;
     if (permission.empty()) {
         std::cout << "   Token not found or invalid. return status 401" << std::endl;
         res.status = 401; // Unauthorized
         res.set_content("Unauthorized: Token not found or invalid.", "text/plain");
-        //return true;
+        return true;
     }
     std::cout << "   processing..." << std::endl;
     std::cout << "   uid: " << permission["userIdx"] << std::endl;
     return false;
 }
 
+bool CheckAccess (std::unordered_map<jwt::traits::kazuho_picojson::string_type, jwt::claim> permission, std::string value, httplib::Response& res)
+{
+    if (permission[value].as_bool())
+    {
+        return true;
+    }
+    std::cout << "   Permission - " << value << " not granted." << std::endl;
+    std::cout << "[Access denied]" << std::endl;
+    res.status = 403;
+    res.set_content("Action prohibited: uid: " + permission["userIdx"].as_string() + " Permission not granted." , "text/plain");
+    return false;
+}
 
-
-
+bool IsThisUser(std::unordered_map<jwt::traits::kazuho_picojson::string_type, jwt::claim> permission, int uid, httplib::Response& res)
+{
+    int realuid = permission["userIdx"].as_number();
+    if (uid != realuid )
+    {
+        std::cout << "   real    : " << permission["userIdx"] << std::endl;
+        std::cout << "   uid link: " << std::to_string(uid) << std::endl;
+        std::cout << "[Access denied]" << std::endl;
+        res.status = 403;
+        res.set_content("Action prohibited: uid: " + permission["userIdx"].as_string() + " likn id: " + std::to_string(uid) , "text/plain");
+        return false;
+    }
+    return true;
+}
 
 void AddUser(const httplib::Request& req, httplib::Response& res)
 {
@@ -101,7 +123,6 @@ void GetUserList(const httplib::Request& req, httplib::Response& res)
     std::vector<std::string> lname = sql_get_list_str("last_name", "users");
     std::vector<std::string> fname = sql_get_list_str("first_name", "users");
     std::vector<std::string> mname = sql_get_list_str("middle_name", "users");
-    //std::cout << "   uid link: " << std::to_string(uid) << std::endl;
 
     nlohmann::json jsonRes;
     jsonRes["users"] = nlohmann::json::array();
@@ -159,16 +180,14 @@ void SetUserName(const httplib::Request& req, httplib::Response& res)
     
     nlohmann::json body = nlohmann::json::parse(req.body);
     int uid = std::stoi(req.matches[1]);
-    int realuid = permission["userIdx"].as_number();
-    if (uid != realuid )
+    if (!IsThisUser(permission, uid, res))
     {
-        std::cout << "   real    : " << permission["userIdx"] << std::endl;
-        std::cout << "   uid link: " << std::to_string(uid) << std::endl;
-        std::cout << "[Access denied]" << std::endl;
-        res.status = 403;
-        res.set_content("Action prohibited: uid: " + permission["userIdx"].as_string() + " likn id: " + std::to_string(uid) , "text/plain");
+        CheckAccess(permission, "user:fullName:write", res);
     }
-    std::cout << "[Access granted]" << std::endl;
+    else
+    {
+        std::cout << "[Access granted]" << std::endl;
+    }
     std::string first_name = body["first_name"];    //  имя
     std::string last_name = body["last_name"];      //  фамилия
     std::string middle_name = body["middle_name"];  //  отчество
@@ -201,7 +220,7 @@ void GetUserCourses(const httplib::Request& req, httplib::Response& res)
     nlohmann::json jsonRes;
     jsonRes["disciplines"] = nlohmann::json::array();
     int uid = std::stoi(req.matches[1]);
-
+    if (!IsThisUser(permission, uid, res)) return;
     std::vector<int> disid = sql_get_array_int("disciplines", "users", uid);
     
     for (auto i : disid)
