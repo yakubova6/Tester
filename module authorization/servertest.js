@@ -152,7 +152,9 @@ app.post('/api/auth/exchange', async (req, res) => {
 
         let userIdx = await getUserIndexByEmail(userEmail)
         sendPostRequestMain(userIdx)
-        
+
+        userInfo.idx = userIdx;
+
         accessToken = jwt.sign({ permissions: permissionsForUser, userInfo, userIdx }, SECRET_KEY, { expiresIn: '1m' });
         const refreshToken = jwt.sign({ email: userInfo.email }, SECRET_KEY, { expiresIn: '7d' });
         addTokenToUser(userEmail, refreshToken);
