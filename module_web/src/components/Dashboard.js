@@ -3,13 +3,14 @@ import axios from 'axios';
 import ErrorPage from './errors/ErrorPage';
 import { useNavigate } from 'react-router-dom';
 import './styles/Dashboard.css';
+import Disciplines from './resources/Disciplines/Disciplines'; // Импортируйте компонент Disciplines
 
 const Dashboard = () => {
     const [userData, setUserData] = useState({
         first_name: '',
         last_name: '',
         middle_name: '',
-        role: ''
+        roles: [] // Изменено на массив ролей
     });
     const [error, setError] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -19,7 +20,6 @@ const Dashboard = () => {
         last_name: '',
         middle_name: ''
     });
-    const [disciplines, setDisciplines] = useState([]);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -29,52 +29,34 @@ const Dashboard = () => {
                 console.log('Проверка сессии:', sessionResponse.data);
 
                 if (sessionResponse.data.status === 'authorized') {
-                    const token = sessionResponse.data.token; // Предполагается, что токен возвращается здесь
-                    const userId = sessionResponse.data.userId; // Получаем userId из ответа сессии
-                    await fetchUserData(userId, token); // Передаем userId для получения данных
-                    await fetchDisciplines(token); // Получаем дисциплины
+                    const token = sessionResponse.data.token; 
+                    const userId = sessionResponse.data.userId; 
+                    await fetchUserData(userId, token); 
                 } else {
-                    navigate('/'); // Перенаправляем на домашнюю страницу
+                    navigate('/'); 
                 }
             } catch (err) {
                 console.error('Ошибка проверки сессии:', err);
-                setError(true); // Устанавливаем флаг ошибки
+                setError(true); 
             } finally {
-                setLoading(false); // Устанавливаем состояние загрузки в false
+                setLoading(false);
             }
         };
 
         const fetchUserData = async (userId, token) => {
             try {
                 const userResponse = await axios.get(`/api/users`, { headers: { Authorization: `Bearer ${token}` } });
-                console.log('Ответ от API пользователя:', userResponse.data); // Логируем ответ от API
-
-                // Получаем первого пользователя из массива users
-                const user = userResponse.data.users[0]; // Извлекаем первого пользователя
+                const user = userResponse.data.users[0];
 
                 if (user) {
-                    // Устанавливаем данные пользователя
                     setUserData({
-                        id: user.id, // Добавляем id пользователя
+                        id: user.id,
                         first_name: user.first_name,
                         last_name: user.last_name,
                         middle_name: user.middle_name,
-                        role: 'Неизвестно' // Устанавливаем роль как "Неизвестно"
+                        roles: Array.isArray(user.roles) ? user.roles : [] // Проверка на массив
                     });
-                    // Устанавливаем данные для редактирования
                     setFormData({
-                        first_name: user.first_name,
-                        last_name: user.last_name,
-                        middle_name: user.middle_name
-                    });
-
-                    // Логируем состояния
-                    console.log('Состояние userData после установки:', {
-                        first_name: user.first_name,
-                        last_name: user.last_name,
-                        middle_name: user.middle_name
-                    });
-                    console.log('Состояние formData после установки:', {
                         first_name: user.first_name,
                         last_name: user.last_name,
                         middle_name: user.middle_name
@@ -89,24 +71,12 @@ const Dashboard = () => {
             }
         };
 
-        // Определение функции fetchDisciplines
-        const fetchDisciplines = async (token) => {
-            try {
-                const disciplinesResponse = await axios.get('/api/disciplines', { headers: { Authorization: `Bearer ${token}` } });
-                setDisciplines(disciplinesResponse.data); // Предполагается, что ответ содержит массив дисциплин
-            } catch (error) {
-                console.error('Ошибка при получении дисциплин:', error.response ? error.response.data : error.message);
-                setError(true);
-            }
-        };
-
         checkSession();
     }, [navigate]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
-        console.log(`Изменение поля ${name}:`, value); // Логируем изменения полей формы
     };
 
     const handleEdit = () => {
@@ -114,17 +84,13 @@ const Dashboard = () => {
     };
 
     const handleSave = async () => {
-        console.log('Текущие cookies:', document.cookie); // Логируем все cookies
-
         const sessionTokenRow = document.cookie.split('; ').find(row => row.startsWith('session_token'));
         const token = sessionTokenRow ? sessionTokenRow.split('=')[1] : null;
 
-        console.log('Найденный токен:', token); // Логируем найденный токен
-
         try {
-            const userId = userData.id; // Убедитесь, что userId существует
+            const userId = userData.id; 
             if (!userId) {
-                throw new Error('ID пользователя не найден'); // Добавьте проверку на случай, если userId не установлен
+                throw new Error('ID пользователя не найден'); 
             }
 
             const fullName = {
@@ -133,15 +99,7 @@ const Dashboard = () => {
                 middle_name: formData.middle_name
             };
 
-            console.log('Данные для отправки:', fullName); // Логируем данные перед отправкой
-
-            // Отправляем измененные данные на новый эндпоинт
             const response = await axios.put(`/api/users/${userId}/name/update`, fullName, { headers: { Authorization: `Bearer ${token}` } });
-
-            // Логируем ответ от сервера
-            console.log('Ответ от сервера после сохранения:', response.data);
-
-            // Обновляем состояние userData с новыми данными
             setUserData({ ...userData, ...formData });
             setIsEditing(false);
         } catch (error) {
@@ -217,26 +175,7 @@ const Dashboard = () => {
                 <button className="logout-button" onClick={handleEdit}>Изменить</button>
             )}
 
-            <h3>Доступные дисциплины</h3>
-            {userData.role === 'Студент' ? (
-                <ul>
-                    {disciplines.map((discipline) => (
-                        <li key={discipline.id}>
-                            {discipline.name} - <button>Посмотреть тесты</button>
-                        </li>
-                    ))}
-                </ul>
-            ) : userData.role === 'Преподаватель' ? (
-                <ul>
-                    {disciplines.map((discipline) => (
-                        <li key={discipline.id}>
-                            {discipline.name} - <button>Посмотреть студентов</button>
-                        </li>
-                    ))}
-                </ul>
-            ) : (
-                <p>Нет доступных дисциплин для отображения.</p>
-            )}
+            <Disciplines userRole={userData.roles.includes('Teacher') ? 'Teacher' : 'Student'} userId={userData.id} />
 
             <button className="logout-button" onClick={() => navigate('/logout')}>Выйти</button>
         </div>
