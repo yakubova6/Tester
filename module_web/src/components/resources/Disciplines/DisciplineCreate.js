@@ -6,16 +6,16 @@ const DisciplineCreate = () => {
     const navigate = useNavigate();
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
-    const [error, setError] = useState(null); // Добавляем состояние для ошибок
+    const [error, setError] = useState(null); 
 
     const handleCreate = async () => {
         try {
             const response = await createDiscipline({ name, description });
-            console.log('Response from creating discipline:', response.data); // Логируем ответ
+            console.log('Response from creating discipline:', response.data); 
             navigate('/disciplines'); // Перенаправляем на страницу дисциплин
         } catch (error) {
             console.error('Ошибка при создании дисциплины:', error);
-            setError('Не удалось создать дисциплину.'); // Устанавливаем сообщение об ошибке
+            setError('Не удалось создать дисциплину.'); 
         }
     };
 

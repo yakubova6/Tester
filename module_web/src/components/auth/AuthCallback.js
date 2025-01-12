@@ -1,9 +1,8 @@
 import React, { useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import Cookies from 'js-cookie'; // Не забудьте импортировать js-cookie, если еще не сделали это
+import Cookies from 'js-cookie';
 
-// Ваш коллбэк на клиенте
 const AuthCallback = ({ setUserStatus }) => {
     const navigate = useNavigate();
 
@@ -43,7 +42,7 @@ const AuthCallback = ({ setUserStatus }) => {
                     }
 
                     // Установка состояния пользователя
-                    setUserStatus('authorized'); // Устанавливаем статус пользователя на 'authorized'
+                    setUserStatus('authorized'); 
                     console.log('Авторизация успешна:', response.data);
                     
                     // Перенаправление на страницу Dashboard
@@ -59,7 +58,7 @@ const AuthCallback = ({ setUserStatus }) => {
             });
     }, [navigate, setUserStatus]);
 
-    return null; // Или вы можете вернуть какой-то индикатор загрузки
+    return null;
 };
 
 export default AuthCallback;

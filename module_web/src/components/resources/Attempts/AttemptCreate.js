@@ -17,7 +17,7 @@ const AttemptCreate = () => {
         setError(null);
         try {
             await createAttempt({ userId, testId, status, answers });
-            navigate('/attempts'); // Перенаправить на список попыток после успешного создания
+            navigate('/attempts'); // Перенаправляем на список попыток после успешного создания
         } catch (err) {
             setError('Ошибка при создании попытки.');
         } finally {

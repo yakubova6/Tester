@@ -28,7 +28,7 @@ const AttemptEdit = () => {
         e.preventDefault();
         try {
             await updateAttempt(id, attempt);
-            navigate(`/attempts/${id}`); // Перенаправить на детали попытки после успешного редактирования
+            navigate(`/attempts/${id}`); // Перенаправляем на детали попытки после успешного редактирования
         } catch (err) {
             setError('Ошибка при обновлении попытки.');
         }

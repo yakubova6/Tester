@@ -16,7 +16,7 @@ const AnswerCreate = () => {
         setError(null);
         try {
             await createAnswer({ questionId, attemptId, value });
-            navigate('/answers'); // Перенаправить на список ответов после успешного создания
+            navigate('/answers'); // Перенаправляем на список ответов после успешного создания
         } catch (err) {
             setError('Ошибка при создании ответа.');
         } finally {

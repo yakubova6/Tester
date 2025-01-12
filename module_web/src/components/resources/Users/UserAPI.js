@@ -1,4 +1,3 @@
-// src/components/resources/Users/UserAPI.js
 import axios from 'axios';
 
 // Получить список всех пользователей

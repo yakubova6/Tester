@@ -13,7 +13,7 @@ const CodeAuth = ({ setUserStatus }) => {
     const handleRequestCode = async () => {
         try {
             console.log('Отправляем запрос на генерацию кода...');
-            const responseCode = await axios.post('/api/auth/code'); // Используем обновленный API
+            const responseCode = await axios.post('/api/auth/code'); 
             console.log('Ответ от сервера при получении кода:', responseCode.data);
             
             if (responseCode.data && responseCode.data.code) {

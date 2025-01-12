@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createQuestion } from './QuestionAPI'; // Импортируем API функции
+import { createQuestion } from './QuestionAPI'; 
 
 const QuestionCreate = ({ fetchQuestions }) => {
     const navigate = useNavigate();

@@ -1,4 +1,3 @@
-// src/components/resources/Tests/Tests.js
 import React, { useEffect, useState } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import { fetchTests } from './TestAPI';

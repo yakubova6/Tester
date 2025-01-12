@@ -16,25 +16,25 @@ import Attempts from './components/resources/Attempts/Attempts';
 import Answers from './components/resources/Answers/Answers';
 import Login from './components/Login'; 
 import CreateTest from './components/resources/Tests/TestCreate'; 
-import DisciplineCreate from './components/resources/Disciplines/DisciplineCreate'; // Импортируем новый компонент
+import DisciplineCreate from './components/resources/Disciplines/DisciplineCreate'; 
 
 const App = () => {
     const [userStatus, setUserStatus] = useState('unknown');
-    const [userData, setUserData] = useState(null); // Для хранения данных пользователя
+    const [userData, setUserData] = useState(null);
     const [loading, setLoading] = useState(true);
-
 
     useEffect(() => {
         const checkSession = async () => {
             try {
                 console.log("Проверка сессии...");
                 const response = await axios.get('/api/session', { withCredentials: true });
+                console.log("Ответ от сервера:", response);
+                console.log("Статус ответа:", response.status);
                 setUserStatus(response.data.status);
                 
-                // Для тестирования назначаем две роли
                 setUserData({
-                    ...response.data.user,
-                    roles: ['Teacher', 'Student'], // Добавляем обе роли для тестирования
+                    ...response.data.userInfo, 
+                    roles: ['Teacher', 'Student'],
                 });
             } catch (error) {
                 console.error("Ошибка при проверке сессии:", error);
@@ -55,7 +55,7 @@ const App = () => {
                 <Routes>
                     <Route path="/" element={<Login userStatus={userStatus} setUserStatus={setUserStatus} />} />
                     <Route path="/login" element={<Navigate to="/" />} />
-                    <Route path="/dashboard" element={userStatus === 'authorized' ? <Dashboard /> : <Navigate to="/" />} />
+                    <Route path="/dashboard" element={userStatus === 'authorized' ? <Dashboard userData={userData} /> : <Navigate to="/" />} />
                     <Route path="/logout" element={<Logout setUserStatus={setUserStatus} />} />
                     <Route path="/auth/callback" element={<AuthCallback setUserStatus={setUserStatus} />} />
                     <Route path="/auth-error" element={<AuthErrorPage />} />

@@ -15,7 +15,7 @@ body {
     border-radius: 8px; 
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); 
     padding: 40px;
-    text-align: left; /* Выравнивание текста по левому краю */
+    text-align: left; 
     width: 100%; 
     max-width: 600px; 
     margin: auto; 
@@ -26,7 +26,7 @@ body {
 h2 {
     color: #555; 
     margin: 20px 0; 
-    font-weight: bold; /* Жирный шрифт для заголовка */
+    font-weight: bold; 
 }
 
 /* Стили для полей ввода */
@@ -37,7 +37,7 @@ h2 {
     border-radius: 5px; 
     font-size: 16px; 
     box-sizing: border-box; 
-    margin-top: 10px; /* Отступ сверху */
+    margin-top: 10px; 
     transition: border-color 0.3s; 
 }
 
@@ -61,8 +61,8 @@ h2 {
     transition: background-color 0.3s, color 0.3s, transform 0.2s;
     width: 100%; 
     box-sizing: border-box;
-    flex: 1; /* Заставляет кнопки занимать равное пространство */
-    margin: 0 5px; /* Убираем расстояние между кнопками */
+    flex: 1;
+    margin: 0 5px; 
 }
 
 .logout-button:hover {
@@ -75,8 +75,8 @@ h2 {
 
 .button-group {
     display: flex;
-    justify-content: space-between; /* Разделение кнопок */
-    margin-top: 10px; /* Отступ сверху, если нужен */
+    justify-content: space-between; 
+    margin-top: 10px; 
 }
 
 /* Сообщение об ошибке */

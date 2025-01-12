@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { fetchQuestionByIdAndVersion, updateQuestion } from './QuestionAPI'; // Импортируем API функции
+import { fetchQuestionByIdAndVersion, updateQuestion } from './QuestionAPI'; 
 
 const QuestionEdit = () => {
     const { id, version } = useParams();

@@ -7,13 +7,12 @@ const Logout = ({ setUserStatus }) => {
 
     const handleLogout = async () => {
         try {
-            // Выполнение запроса на выход
+            // Запрос на выход
             await axios.post('/api/logout', {}, { withCredentials: true });
             setUserStatus('unknown'); // Обновляем статус пользователя на 'unknown'
-            navigate('/'); // Перенаправление на главную страницу после выхода
+            navigate('/'); 
         } catch (error) {
             console.error('Ошибка выхода:', error);
-            // Можно добавить логику для обработки ошибок, например, отображение сообщения пользователю
         }
     };
 
@@ -22,7 +21,7 @@ const Logout = ({ setUserStatus }) => {
         handleLogout();
     }, []);
 
-    return <div>Выход из системы...</div>; // Можно добавить текст для отображения пользователю
+    return <div>Выход из системы...</div>;
 };
 
 export default Logout;

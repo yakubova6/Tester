@@ -1,4 +1,3 @@
-// src/components/resources/Disciplines/DisciplineAPI.js
 import axios from 'axios';
 
 // Получить список всех дисциплин

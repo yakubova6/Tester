@@ -1,4 +1,3 @@
-// src/components/resources/Disciplines/DisciplineDetail.js
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {

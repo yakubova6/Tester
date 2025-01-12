@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
-import { fetchQuestions } from './QuestionAPI'; // Импортируем API функции
+import { fetchQuestions } from './QuestionAPI'; 
 import QuestionDetail from './QuestionDetail';
 import QuestionEdit from './QuestionEdit';
 import QuestionCreate from './QuestionCreate';

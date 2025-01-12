@@ -28,7 +28,7 @@ const AnswerEdit = () => {
         e.preventDefault();
         try {
             await updateAnswer(id, answer);
-            navigate(`/answers/${id}`); // Перенаправить на детали ответа после успешного редактирования
+            navigate(`/answers/${id}`); // Перенаправляем на детали ответа после успешного редактирования
         } catch (err) {
             setError('Ошибка при обновлении ответа.');
         }

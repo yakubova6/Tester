@@ -1,4 +1,3 @@
-// src/components/resources/Tests/CreateTest.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createTest } from './TestAPI';
@@ -39,7 +38,7 @@ const TestCreate = ({ permissions }) => {
     // Добавление ответа
     const handleAddAnswer = (index) => {
         const newQuestions = [...questions];
-        newQuestions[index].answers.push(''); // Добавляем новый пустой ответ
+        newQuestions[index].answers.push(''); 
         setQuestions(newQuestions);
     };
 
