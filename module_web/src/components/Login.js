@@ -1,8 +1,8 @@
 import React from 'react';
 import './styles/Login.css';
 import GitHubAuth from './auth/GitHubAuth';
-import YandexAuth from './auth/YandexAuth'; // Предположим, что аналогично реализован YandexAuth
-import CodeAuth from './auth/CodeAuth'; // Предположим, что аналогично реализован CodeAuth
+import YandexAuth from './auth/YandexAuth'; 
+import CodeAuth from './auth/CodeAuth'; 
 import { useNavigate } from 'react-router-dom';
 
 const Login = ({ userStatus, setUserStatus }) => {
