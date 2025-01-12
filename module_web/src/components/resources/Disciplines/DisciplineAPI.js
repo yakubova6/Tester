@@ -65,3 +65,14 @@ export const enrollUser = (disciplineId, userId) => {
 export const unenrollUser = (disciplineId, userId) => {
     return axios.delete(`/api/disciplines/${disciplineId}/users/${userId}`);
 };
+
+// Получить дисциплины, на которые записан пользователь
+export const fetchUserDisciplines = async (userId) => {
+    const response = await axios.get(`/api/user/${userId}/courses`); // Отправляем GET-запрос
+    return response.data; // Возвращаем данные из ответа
+};
+
+// Обновить дисциплину
+export const fetchUpdateDiscipline = (id, data) => {
+    return axios.put(`/api/disciplines/${id}`, data);
+};

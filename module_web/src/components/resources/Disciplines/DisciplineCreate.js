@@ -1,4 +1,3 @@
-// src/components/resources/Disciplines/DisciplineCreate.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createDiscipline } from './DisciplineAPI';
@@ -7,19 +6,23 @@ const DisciplineCreate = () => {
     const navigate = useNavigate();
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
+    const [error, setError] = useState(null); // Добавляем состояние для ошибок
 
     const handleCreate = async () => {
         try {
-            await createDiscipline({ name, description });
-            navigate('/disciplines');
+            const response = await createDiscipline({ name, description });
+            console.log('Response from creating discipline:', response.data); // Логируем ответ
+            navigate('/disciplines'); // Перенаправляем на страницу дисциплин
         } catch (error) {
             console.error('Ошибка при создании дисциплины:', error);
+            setError('Не удалось создать дисциплину.'); // Устанавливаем сообщение об ошибке
         }
     };
 
     return (
         <div>
             <h1>Создание дисциплины</h1>
+            {error && <div style={{ color: 'red' }}>{error}</div>} {/* Отображаем сообщение об ошибке */}
             <div>
                 <label>Название:</label>
                 <input

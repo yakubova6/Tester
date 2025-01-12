@@ -1,13 +1,8 @@
-// src/components/resources/Disciplines/Disciplines.js
 import React, { useEffect, useState } from 'react';
-import { Routes, Route, Link } from 'react-router-dom';
-import axios from 'axios';
-import DisciplineDetail from './DisciplineDetail';
-import DisciplineEdit from './DisciplineEdit';
-import DisciplineCreate from './DisciplineCreate';
-import { fetchDisciplines } from './DisciplineAPI';
+import { Link } from 'react-router-dom';
+import { fetchUserDisciplines } from './DisciplineAPI'; // Импортируйте новый API метод
 
-const Disciplines = () => {
+const Disciplines = ({ userRole, userId }) => {
     const [disciplines, setDisciplines] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -18,36 +13,40 @@ const Disciplines = () => {
     const fetchDisciplinesData = async () => {
         setLoading(true);
         try {
-            const response = await fetchDisciplines();
-            setDisciplines(response.data);
+            const response = await fetchUserDisciplines(userId); // Используем переданный userId
+            console.log('Response from fetchUserDisciplines:', response); // Логируем ответ
+            
+            if (response && Array.isArray(response.disciplines)) {
+                setDisciplines(response.disciplines); // Устанавливаем дисциплины из ответа
+            } else {
+                console.warn('Полученный ответ не содержит дисциплин:', response);
+                setDisciplines([]); // Устанавливаем пустой массив, если дисциплины отсутствуют
+            }
         } catch (error) {
-            console.error('Ошибка при загрузке списка дисциплин:', error);
+            console.error('Ошибка при загрузке списка дисциплин:', error.response ? error.response.data : error.message);
+            setDisciplines([]); // Устанавливаем пустой массив в случае ошибки
         } finally {
             setLoading(false);
         }
     };
 
     if (loading) return <div>Загрузка...</div>;
+    if (disciplines.length === 0) return <div>Нет доступных дисциплин.</div>;
 
     return (
-        <Routes>
-            <Route path="/" element={
-                <div>
-                    <h1>Список дисциплин</h1>
-                    <ul>
-                        {disciplines.map((discipline) => (
-                            <li key={discipline.id}>
-                                <Link to={`/disciplines/${discipline.id}`}>{discipline.name}</Link>
-                            </li>
-                        ))}
-                    </ul>
-                    <Link to="/disciplines/create">Создать дисциплину</Link>
-                </div>
-            } />
-            <Route path="/:id" element={<DisciplineDetail />} />
-            <Route path="/:id/edit" element={<DisciplineEdit />} />
-            <Route path="/create" element={<DisciplineCreate />} />
-        </Routes>
+        <div>
+            <h3>Доступные дисциплины</h3>
+            <ul>
+                {disciplines.map((discipline) => (
+                    <li key={discipline.id}>
+                        <Link to={`/disciplines/${discipline.id}`}>{discipline.name}</Link>
+                    </li>
+                ))}
+            </ul>
+            {userRole.includes('Teacher') && ( // Проверяем, есть ли роль 'Teacher'
+                <Link to="/disciplines/create">Создать дисциплину</Link>
+            )}
+        </div>
     );
 };
 
