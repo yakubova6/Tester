@@ -75,6 +75,13 @@ h2 {
     border-color: #2e5e92; 
 }
 
+/* Сообщение об ошибке */
+.error-message {
+    color: red; /* Цвет текста ошибки */
+    margin-top: 10px; /* Отступ сверху */
+    font-size: 14px; /* Размер шрифта */
+}
+
 /* Стили для текста регистрации */
 .registration-message {
     margin-top: 20px; 
@@ -89,22 +96,4 @@ h2 {
 
 .registration-message a:hover {
     text-decoration: underline; 
-}
-
-/* Стили для поля ввода кода */
-.input-code {
-    width: 100%; 
-    padding: 10px; 
-    border: 1px solid #31649b; 
-    border-radius: 5px; 
-    font-size: 16px; 
-    box-sizing: border-box; 
-    margin-top: 10px; 
-    margin-bottom: 20px; 
-    transition: border-color 0.3s; 
-}
-
-.input-code:focus {
-    outline: none; 
-    border-color: #2e5e92; 
 }
