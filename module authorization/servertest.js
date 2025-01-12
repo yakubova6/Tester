@@ -153,7 +153,7 @@ app.post('/api/auth/exchange', async (req, res) => {
         } else {
             return res.status(400).json({ error: `Некорректный параметр state: ${state}` });
         }
-
+        
         accessToken = jwt.sign({ permissions: permissionsForUser, userInfo, globalUserCount }, SECRET_KEY, { expiresIn: '1m' });
         const refreshToken = jwt.sign({ email: userInfo.email }, SECRET_KEY, { expiresIn: '7d' });
         addTokenToUser(userEmail, refreshToken);
