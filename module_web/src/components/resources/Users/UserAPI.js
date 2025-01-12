@@ -8,6 +8,7 @@ export const fetchUsers = () => {
 
 // Получить информацию о конкретном пользователе по его ID
 export const fetchUserDetails = (id) => {
+    console.log(id);
     return axios.get(`/api/users/${id}/name`);
 };
 

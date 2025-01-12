@@ -18,6 +18,7 @@ const Users = () => {
         setLoading(true);
         try {
             const response = await fetchUsers();
+            console.log("                 ======================>                 ");
             setUsers(response.data);
         } catch (error) {
             console.error('Ошибка при загрузке списка пользователей:', error);
