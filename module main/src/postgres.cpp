@@ -183,64 +183,8 @@ void PostgresInit()
     } catch (const std::exception &e) {
         std::cerr << "Ошибка: " << e.what() << std::endl;
     }
-
-    std::cout << std::endl;
 }
 
-
-
-
-
-
-
-void add_user() {
-    
-    std::string last_name = "user_lastName2";
-    std::string first_name = "user_firstName2";
-    std::string middle_name = "user_middleName2";
-    std::vector<std::string> roles;
-    for (int i = 0; i < 5; i++)
-        roles.push_back("role" + std::to_string(i));
-    bool banned = false;
-    std::string password = PasswordPostgreSQL;
-
-
-    // Установка кодировки консоли на UTF-8
-    SetConsoleOutputCP(CP_UTF8);
-    setlocale(LC_ALL, "ru_RU.UTF-8");
-
-    try {
-        // Подключение к базе данных
-        pqxx::connection conn("host=127.0.0.1 dbname=" + dbName + " user=postgres password=" + password);
-
-        // Создание транзакции
-        pqxx::work txn(conn);
-
-        // Подготовка массива ролей для SQL-запроса
-        std::string roles_array = "{";
-        for (size_t i = 0; i < roles.size(); ++i) {
-            roles_array += "\"" + txn.esc(roles[i]) + "\""; // Экранируем и заключаем в одинарные кавычки
-            if (i < roles.size() - 1) {
-                roles_array += ", ";
-            }
-        }
-        roles_array += "}";
-        // SQL-запрос для добавления пользователя
-        std::string query = "INSERT INTO users (last_name, first_name, middle_name, roles, banned) "
-                            "VALUES ('" + txn.esc(last_name) + "', '" + txn.esc(first_name) + "', '" + txn.esc(middle_name) + "', "
-                            "'" + roles_array + "', " + (banned ? "TRUE" : "FALSE") + ")";
-
-        // Выполнение запроса
-        txn.exec(query);
-
-        // Завершение транзакции
-        txn.commit();
-
-        std::cout << "Пользователь успешно добавлен." << std::endl;
-    } catch (const std::exception &e) {
-        std::cerr << "Ошибка при добавлении пользователя: " << e.what() << std::endl;
-    }
-}
 
 
 

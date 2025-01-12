@@ -47,6 +47,7 @@ inline std::unordered_map<jwt::traits::kazuho_picojson::string_type, jwt::claim>
 
     std::cout << "   Find token... ";
     std::string token = findToken(req);
+    //std::cout << "   Token: " << token << std::endl;
 
     if (token == "")
     {
@@ -59,6 +60,13 @@ inline std::unordered_map<jwt::traits::kazuho_picojson::string_type, jwt::claim>
         verifier.verify(decoded_token);
         payload = decoded_token.get_payload_claims();
         std::cout << "Valid token." << std::endl;
+        
+        /*
+        std::cout << "   Token payloald: ";
+        for (const auto& claim : payload) {
+            std::cout << claim.first << ": " << claim.second.to_json().serialize() << std::endl;
+        }
+        */
     }catch (...) {
         std::cout << "Invalid token." << std::endl;
     }

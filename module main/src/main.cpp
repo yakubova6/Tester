@@ -13,15 +13,14 @@ int main ()
 
 //      ПОДКЛЮЧЕНИЕ К PostgreSQL
     PostgresInit();
-    //add_user();
-
 
 //      ДОБАВЛЕНИЕ ЭНДПОИНТОВ И НАЧАЛО ПРОСЛУШКИ ПОРТА
 
 
     httplib::Server server;
 
-    server.Post("api/db/addUser", AddUser);         //      добавляет нового пользователя в бд после регистрации
+    server.Post("/api/db/addUser", AddUser);         //      добавляет нового пользователя в бд после регистрации
+                                                     //      ЗАПРОСА НЕТ В ТЗ
 
 //      пользователи
     server.Get("/api/db/users", GetUserList);                                   //  Посмотреть список пользователей
@@ -69,6 +68,9 @@ int main ()
     server.Get("/api/db/disciplines/(\\d+)/tests/(\\d+)/users", GetQuestUsers);                 //  Посмотреть список пользователей прошедших тест
     server.Get("/api/db/disciplines/(\\d+)/tests/(\\d+)/gread", GetQuestUsers);                 //  Посмотреть оценку пользователя
     server.Get("/api/db/disciplines/(\\d+)/tests/(\\d+)/answer", GetTestAnswers);               //  Посмотреть ответы пользователя
+
+    server.Get("/api/db/disciplines/(\\d+)/tests/(\\d+)", GetTestQuests);                       //  возвращает массив id вопросов для теста
+                                                                                                //  ЗАПРОСА НЕТ В ТЗ
 //  ..............................
 
 //      попытки
@@ -86,6 +88,19 @@ int main ()
 //  ..............................
 
 
+    char* main_module = 
+R"(
+    *                                                         
+  (  `                                    (          (        
+  )\))(      )  (              )          )\ )   (   )\   (   
+ ((_)()\  ( /(  )\   (        (      (   (()/(  ))\ ((_) ))\  
+ (_()((_) )(_))((_)  )\ )     )\  '  )\   ((_))/((_) _  /((_) 
+ |  \/  |((_)_  (_) _(_/(   _((_))  ((_)  _| |(_))( | |(_))   
+ | |\/| |/ _` | | || ' \)) | '  \()/ _ \/ _` || || || |/ -_)  
+ |_|  |_|\__,_| |_||_||_|  |_|_|_| \___/\__,_| \_,_||_|\___|  
+  
+)";
+    std::cout << main_module << std::endl;
     std::cout << "Server started at http://127.0.0.1:1111/" << std::endl << std::endl;
     server.listen("127.0.0.1", 1111);
     std::cout << "Server was stoped." << std::endl;

@@ -204,7 +204,12 @@ app.get('/api/auth/callback', async (req, res) => {
         res.cookie('session_token', sessionToken, { httpOnly: true, secure: false, sameSite: 'Lax' });
         console.log('Кука session_token установлена:', sessionToken);
 
-        res.redirect('/');
+        // Установка куки с accessToken
+        res.cookie('access_token', accessToken, { httpOnly: true, secure: false, sameSite: 'Lax' });
+        console.log('Кука access_token установлена:', accessToken);
+
+        // Перенаправление на клиентское приложение
+        res.redirect('/'); // Измените на нужный вам URL
     } catch (error) {
         console.error('Ошибка при обработке коллбэка:', error.message);
         res.status(500).json({ error: 'Ошибка при обработке коллбэка' });
@@ -340,7 +345,7 @@ const handleError = (res, error) => {
 // Получить список всех дисциплин
 app.get('/api/disciplines', verifyToken, async (req, res) => {
     try {
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         const disciplines = await sendRequestToDBModule('GET', '/api/db/disciplines', {}, token);
         res.status(200).json(disciplines);
     } catch (error) {
@@ -365,7 +370,7 @@ app.get('/api/user/:id/courses', verifyToken, async (req, res) => {
 app.get('/api/disciplines/:id', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         const discipline = await sendRequestToDBModule('GET', `/api/db/disciplines/${id}`, {}, token);
         res.status(200).json(discipline);
     } catch (error) {
@@ -377,9 +382,7 @@ app.get('/api/disciplines/:id', verifyToken, async (req, res) => {
 app.post('/api/disciplines', verifyToken, async (req, res) => {
     try {
         const { name, description } = req.body;
-        console.log('Creating discipline with data:', { name, description }); // Логируем данные
-        const token = req.cookies.session_token;
-        
+        const token = req.cookies.access_token;
         const newDiscipline = await sendRequestToDBModule('POST', '/api/db/disciplines', { name, description }, token);
         res.status(201).json(newDiscipline);
     } catch (error) {
@@ -393,7 +396,7 @@ app.put('/api/disciplines/:id', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
         const { name, description } = req.body;
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         const updatedDiscipline = await sendRequestToDBModule('PUT', `/api/db/disciplines/${id}`, { name, description }, token);
         res.status(200).json(updatedDiscipline);
     } catch (error) {
@@ -405,7 +408,7 @@ app.put('/api/disciplines/:id', verifyToken, async (req, res) => {
 app.delete('/api/disciplines/:id', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         await sendRequestToDBModule('DELETE', `/api/db/disciplines/${id}`, {}, token);
         res.status(204).send();
     } catch (error) {
@@ -417,7 +420,7 @@ app.delete('/api/disciplines/:id', verifyToken, async (req, res) => {
 app.get('/api/disciplines/:id/tests', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         const tests = await sendRequestToDBModule('GET', `/api/db/disciplines/${id}/tests`, {}, token);
         res.status(200).json(tests);
     } catch (error) {
@@ -429,7 +432,7 @@ app.get('/api/disciplines/:id/tests', verifyToken, async (req, res) => {
 app.put('/api/disciplines/:id/tests/:testId/activate', verifyToken, async (req, res) => {
     try {
         const { id, testId } = req.params;
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         const updatedTest = await sendRequestToDBModule('PUT', `/api/db/disciplines/${id}/tests/${testId}/activate`, {}, token);
         res.status(200).json(updatedTest);
     } catch (error) {
@@ -441,7 +444,7 @@ app.put('/api/disciplines/:id/tests/:testId/activate', verifyToken, async (req, 
 app.put('/api/disciplines/:id/tests/:testId/deactivate', verifyToken, async (req, res) => {
     try {
         const { id, testId } = req.params;
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         const updatedTest = await sendRequestToDBModule('PUT', `/api/db/disciplines/${id}/tests/${testId}/deactivate`, {}, token);
         res.status(200).json(updatedTest);
     } catch (error) {
@@ -453,7 +456,7 @@ app.put('/api/disciplines/:id/tests/:testId/deactivate', verifyToken, async (req
 app.delete('/api/disciplines/:id/tests/:testId', verifyToken, async (req, res) => {
     try {
         const { id, testId } = req.params;
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         await sendRequestToDBModule('DELETE', `/api/db/disciplines/${id}/tests/${testId}`, {}, token);
         res.status(204).send();
     } catch (error) {
@@ -465,7 +468,7 @@ app.delete('/api/disciplines/:id/tests/:testId', verifyToken, async (req, res) =
 app.get('/api/disciplines/:id/tests/:testId/active', verifyToken, async (req, res) => {
     try {
         const { id, testId } = req.params;
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         const isActive = await sendRequestToDBModule('GET', `/api/db/disciplines/${id}/tests/${testId}/active`, {}, token);
         res.status(200).json({ isActive });
     } catch (error) {
@@ -477,7 +480,7 @@ app.get('/api/disciplines/:id/tests/:testId/active', verifyToken, async (req, re
 app.get('/api/disciplines/:id/users', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         const users = await sendRequestToDBModule('GET', `/api/db/disciplines/${id}/users`, {}, token);
         res.status(200).json(users);
     } catch (error) {
@@ -489,7 +492,7 @@ app.get('/api/disciplines/:id/users', verifyToken, async (req, res) => {
 app.put('/api/disciplines/:id/users/:userId', verifyToken, async (req, res) => {
     try {
         const { id, userId } = req.params;
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         const updatedUser = await sendRequestToDBModule('PUT', `/api/db/disciplines/${id}/users/${userId}`, {}, token);
         res.status(200).json(updatedUser);
     } catch (error) {
@@ -501,7 +504,7 @@ app.put('/api/disciplines/:id/users/:userId', verifyToken, async (req, res) => {
 app.delete('/api/disciplines/:id/users/:userId', verifyToken, async (req, res) => {
     try {
         const { id, userId } = req.params;
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         const updatedUser = await sendRequestToDBModule('DELETE', `/api/db/disciplines/${id}/users/${userId}`, {}, token);
         res.status(200).json(updatedUser);
     } catch (error) {
@@ -514,7 +517,7 @@ app.delete('/api/disciplines/:id/users/:userId', verifyToken, async (req, res) =
 // Получить список всех тестов
 app.get('/api/tests', verifyToken, async (req, res) => {
     try {
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         const tests = await sendRequestToDBModule('GET', '/api/db/tests', {}, token);
         res.status(200).json(tests);
     } catch (error) {
@@ -526,7 +529,7 @@ app.get('/api/tests', verifyToken, async (req, res) => {
 app.get('/api/tests/:id', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         const test = await sendRequestToDBModule('GET', `/api/db/tests/${id}`, {}, token);
         res.status(200).json(test);
     } catch (error) {
@@ -538,7 +541,7 @@ app.get('/api/tests/:id', verifyToken, async (req, res) => {
 app.post('/api/tests', verifyToken, async (req, res) => {
     try {
         const { name, description, disciplineId } = req.body;
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         const newTest = await sendRequestToDBModule('POST', '/api/db/tests', { name, description, disciplineId }, token);
         res.status(201).json(newTest);
     } catch (error) {
@@ -551,7 +554,7 @@ app.put('/api/tests/:id', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
         const { name, description, disciplineId } = req.body;
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         const updatedTest = await sendRequestToDBModule('PUT', `/api/db/tests/${id}`, { name, description, disciplineId }, token);
         res.status(200).json(updatedTest);
     } catch (error) {
@@ -563,7 +566,7 @@ app.put('/api/tests/:id', verifyToken, async (req, res) => {
 app.delete('/api/tests/:id', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         await sendRequestToDBModule('DELETE', `/api/db/tests/${id}`, {}, token);
         res.status(204).send();
     } catch (error) {
@@ -576,7 +579,7 @@ app.delete('/api/tests/:id', verifyToken, async (req, res) => {
 // Получить список всех вопросов
 app.get('/api/questions', verifyToken, async (req, res) => {
     try {
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         const questions = await sendRequestToDBModule('GET', '/api/db/questions', {}, token);
         res.status(200).json(questions);
     } catch (error) {
@@ -588,7 +591,7 @@ app.get('/api/questions', verifyToken, async (req, res) => {
 app.get('/api/questions/:id', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         const question = await sendRequestToDBModule('GET', `/api/db/questions/${id}`, {}, token);
         res.status(200).json(question);
     } catch (error) {
@@ -601,7 +604,7 @@ app.put('/api/questions/:id', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
         const { text, testId } = req.body;
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         const updatedQuestion = await sendRequestToDBModule('PUT', `/api/db/questions/${id}`, { text, testId }, token);
         res.status(200).json(updatedQuestion);
     } catch (error) {
@@ -613,7 +616,7 @@ app.put('/api/questions/:id', verifyToken, async (req, res) => {
 app.post('/api/questions', verifyToken, async (req, res) => {
     try {
         const { text, testId } = req.body;
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         const newQuestion = await sendRequestToDBModule('POST', '/api/db/questions', { text, testId }, token);
         res.status(201).json(newQuestion);
     } catch (error) {
@@ -625,7 +628,7 @@ app.post('/api/questions', verifyToken, async (req, res) => {
 app.delete('/api/questions/:id', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         await sendRequestToDBModule('DELETE', `/api/db/questions/${id}`, {}, token);
         res.status(204).send();
     } catch (error) {
@@ -638,7 +641,7 @@ app.delete('/api/questions/:id', verifyToken, async (req, res) => {
 // Получить список всех попыток
 app.get('/api/attempts', verifyToken, async (req, res) => {
     try {
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         const attempts = await sendRequestToDBModule('GET', '/api/db/attempts', {}, token);
         res.status(200).json(attempts);
     } catch (error) {
@@ -650,7 +653,7 @@ app.get('/api/attempts', verifyToken, async (req, res) => {
 app.get('/api/attempts/:id', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         const attempt = await sendRequestToDBModule('GET', `/api/db/attempts/${id}`, {}, token);
         res.status(200).json(attempt);
     } catch (error) {
@@ -662,7 +665,7 @@ app.get('/api/attempts/:id', verifyToken, async (req, res) => {
 app.post('/api/attempts', verifyToken, async (req, res) => {
     try {
         const { userId, testId, status } = req.body;
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         const newAttempt = await sendRequestToDBModule('POST', '/api/db/attempts', { userId, testId, status }, token);
         res.status(201).json(newAttempt);
     } catch (error) {
@@ -675,7 +678,7 @@ app.put('/api/attempts/:id', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
         const { userId, testId, status } = req.body;
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         const updatedAttempt = await sendRequestToDBModule('PUT', `/api/db/attempts/${id}`, { userId, testId, status }, token);
         res.status(200).json(updatedAttempt);
     } catch (error) {
@@ -687,7 +690,7 @@ app.put('/api/attempts/:id', verifyToken, async (req, res) => {
 app.delete('/api/attempts/:id', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         await sendRequestToDBModule('DELETE', `/api/db/attempts/${id}`, {}, token);
         res.status(204).send();
     } catch (error) {
@@ -700,7 +703,7 @@ app.delete('/api/attempts/:id', verifyToken, async (req, res) => {
 // Получить список всех ответов
 app.get('/api/answers', verifyToken, async (req, res) => {
     try {
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         const answers = await sendRequestToDBModule('GET', '/api/db/answers', {}, token);
         res.status(200).json(answers);
     } catch (error) {
@@ -712,7 +715,7 @@ app.get('/api/answers', verifyToken, async (req, res) => {
 app.get('/api/answers/:id', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         const answer = await sendRequestToDBModule('GET', `/api/db/answers/${id}`, {}, token);
         res.status(200).json(answer);
     } catch (error) {
@@ -724,7 +727,7 @@ app.get('/api/answers/:id', verifyToken, async (req, res) => {
 app.post('/api/answers', verifyToken, async (req, res) => {
     try {
         const { attemptId, questionId, value } = req.body;
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         const newAnswer = await sendRequestToDBModule('POST', '/api/db/answers', { attemptId, questionId, value }, token);
         res.status(201).json(newAnswer);
     } catch (error) {
@@ -737,7 +740,7 @@ app.put('/api/answers/:id', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
         const { attemptId, questionId, value } = req.body;
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         const updatedAnswer = await sendRequestToDBModule('PUT', `/api/db/answers/${id}`, { attemptId, questionId, value }, token);
         res.status(200).json(updatedAnswer);
     } catch (error) {
@@ -749,7 +752,7 @@ app.put('/api/answers/:id', verifyToken, async (req, res) => {
 app.delete('/api/answers/:id', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         await sendRequestToDBModule('DELETE', `/api/db/answers/${id}`, {}, token);
         res.status(204).send();
     } catch (error) {
@@ -757,12 +760,24 @@ app.delete('/api/answers/:id', verifyToken, async (req, res) => {
     }
 });
 
+
+
+
+
+
+
+
+
+
+
+
+
 // Пользователи
 
 // Получить список всех пользователей
 app.get('/api/users', verifyToken, async (req, res) => {
     try {
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         const users = await sendRequestToDBModule('GET', '/api/db/users', {}, token);
         res.status(200).json(users);
     } catch (error) {
@@ -774,7 +789,7 @@ app.get('/api/users', verifyToken, async (req, res) => {
 app.get('/api/users/:id/name', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         const user = await sendRequestToDBModule('GET', `/api/db/users/${id}/name`, {}, token);
         res.status(200).json(user);
     } catch (error) {
@@ -786,20 +801,26 @@ app.get('/api/users/:id/name', verifyToken, async (req, res) => {
 app.put('/api/users/:id/name/update', verifyToken, async (req, res) => {
     const userId = req.params.id;
     const { first_name, last_name, middle_name } = req.body;
+    const token = req.cookies.access_token;
 
     try {
         // Здесь отправляем данные на нужный адрес (например, на главный модуль)
-        const response = await axios.put(`http://127.0.0.1:1111/api/db/users/${userId}/name`, {
+        //const response = await axios.put(`http://127.0.0.1:1111/api/db/users/${userId}/name`, {
+        //    first_name,
+        //    last_name,
+        //    middle_name
+        //});
+        const resp = await sendRequestToDBModule('PUT', `/api/db/users/${userId}/name`, {
             first_name,
             last_name,
             middle_name
-        });
+        }, token);
 
         // Проверяем ответ от главного модуля
-        if (response.status === 200) {
+        if (resp.status === 200) {
             res.status(200).json({ message: 'User updated successfully', user: response.data });
         } else {
-            res.status(response.status).json({ error: 'Failed to update user in the main module' });
+            res.status(resp.status).json({ error: 'Failed to update user in the main module' });
         }
     } catch (error) {
         console.error('Error updating user:', error);
@@ -812,7 +833,7 @@ app.put('/api/users/:id/name/update', verifyToken, async (req, res) => {
 app.get('/api/users/:id/courses', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         const courses = await sendRequestToDBModule('GET', `/api/db/users/${id}/courses`, {}, token);
         res.status(200).json(courses);
     } catch (error) {
@@ -824,7 +845,7 @@ app.get('/api/users/:id/courses', verifyToken, async (req, res) => {
 app.get('/api/users/:id/grades', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         const grades = await sendRequestToDBModule('GET', `/api/db/users/${id}/grades`, {}, token);
         res.status(200).json(grades);
     } catch (error) {
@@ -836,7 +857,7 @@ app.get('/api/users/:id/grades', verifyToken, async (req, res) => {
 app.get('/api/users/:id/tests', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         const tests = await sendRequestToDBModule('GET', `/api/db/users/${id}/tests`, {}, token);
         res.status(200).json(tests);
     } catch (error) {
@@ -848,7 +869,7 @@ app.get('/api/users/:id/tests', verifyToken, async (req, res) => {
 app.get('/api/users/:id/roles', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         const roles = await sendRequestToDBModule('GET', `/api/db/users/${id}/roles`, {}, token);
         res.status(200).json(roles);
     } catch (error) {
@@ -861,7 +882,7 @@ app.put('/api/users/:id/roles', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
         const { roles } = req.body;
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         const updatedRoles = await sendRequestToDBModule('PUT', `/api/db/users/${id}/roles`, { roles }, token);
         res.status(200).json(updatedRoles);
     } catch (error) {
@@ -873,7 +894,7 @@ app.put('/api/users/:id/roles', verifyToken, async (req, res) => {
 app.get('/api/users/:id/block', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         const isBlocked = await sendRequestToDBModule('GET', `/api/db/users/${id}/block`, {}, token);
         res.status(200).json({ isBlocked });
     } catch (error) {
@@ -885,7 +906,7 @@ app.get('/api/users/:id/block', verifyToken, async (req, res) => {
 app.put('/api/users/:id/block', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         const updatedUser = await sendRequestToDBModule('PUT', `/api/db/users/${id}/block`, {}, token);
         res.status(200).json(updatedUser);
     } catch (error) {
@@ -897,7 +918,7 @@ app.put('/api/users/:id/block', verifyToken, async (req, res) => {
 app.put('/api/users/:id/unblock', verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
-        const token = req.cookies.session_token;
+        const token = req.cookies.access_token;
         const updatedUser = await sendRequestToDBModule('PUT', `/api/db/users/${id}/unblock`, {}, token);
         res.status(200).json(updatedUser);
     } catch (error) {

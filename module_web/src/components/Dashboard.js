@@ -45,8 +45,18 @@ const Dashboard = () => {
 
         const fetchUserData = async (userId, token) => {
             try {
+                /*
                 const userResponse = await axios.get(`/api/users`, { headers: { Authorization: `Bearer ${token}` } });
-                const user = userResponse.data.users[0];
+                console.log('Ответ от API пользователя:', userResponse.data); // Логируем ответ от API
+
+                // Получаем первого пользователя из массива users
+                const user = userResponse.data.users[0]; // Извлекаем первого пользователя
+                */
+                const userResponse = await axios.get('/api/users/${userId}', { headers: { Authorization: `Bearer ${token}` } });
+                console.log('Ответ от API пользователя:', userResponse.data); // Логируем ответ от API
+                const user = userResponse;
+
+
 
                 if (user) {
                     setUserData({

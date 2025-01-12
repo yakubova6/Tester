@@ -13,7 +13,8 @@
 #include <vector>
 
 
-void AddUser(const httplib::Request& req, httplib::Response& res);
+void AddUser(const httplib::Request& req, httplib::Response& res);                      //  + добавляет нового пользователя
+                                                                                        //  ЗАПРОСА НЕТ В ТЗ
 
 //      пользователи        --------------------------------------------------------------------------------
 
@@ -65,6 +66,9 @@ void SetTestQuestSequence(const httplib::Request& req, httplib::Response& res); 
 void GetQuestUsers(const httplib::Request& req, httplib::Response& res);                //  Посмотреть список пользователей прошедших тест
 void GetTestGreads(const httplib::Request& req, httplib::Response& res);                //  Посмотреть оценку пользователя
 void GetTestAnswers(const httplib::Request& req, httplib::Response& res);               //  Посмотреть ответы пользователя
+
+void GetTestQuests(const httplib::Request& req, httplib::Response& res);                //  + Возвращает тест
+                                                                                        //  ЗАПРОСА НЕТ В ТЗ
 
 
 //      Попытки             --------------------------------------------------------------------------------

@@ -4,14 +4,15 @@
 
 bool Unauthorized(httplib::Response& res, std::unordered_map<jwt::traits::kazuho_picojson::string_type, jwt::claim> permission)
 {
-    return false;
+    //return false;
     if (permission.empty()) {
         std::cout << "   Token not found or invalid. return status 401" << std::endl;
         res.status = 401; // Unauthorized
         res.set_content("Unauthorized: Token not found or invalid.", "text/plain");
-        return true;
+        //return true;
     }
     std::cout << "   processing..." << std::endl;
+    std::cout << "   uid: " << permission["userIdx"] << std::endl;
     return false;
 }
 
@@ -26,7 +27,45 @@ void AddUser(const httplib::Request& req, httplib::Response& res)
     *   только для модуля авторизации
     */
 
-   //   TODO
+    std::cout << "Add new user. Student + Teacher." << std::endl;
+
+    int uid = nlohmann::json::parse(req.body)["uid"];
+    std::string last_name = "user_lastName-" + std::to_string(uid);
+    std::string first_name = "user_firstName-" + std::to_string(uid);
+    std::string middle_name = "user_middleName-" + std::to_string(uid);
+    std::vector<std::string> roles;
+    roles.push_back("Student");
+    roles.push_back("Teacher");
+    bool banned = false;
+
+    // Установка кодировки консоли на UTF-8
+    SetConsoleOutputCP(CP_UTF8);
+    setlocale(LC_ALL, "ru_RU.UTF-8");
+
+    try {
+        pqxx::connection conn("host=127.0.0.1 dbname=" + get_db_name() + " user=postgres password=" + get_db_password());
+        pqxx::work txn(conn);
+
+        // Подготовка массива ролей для SQL-запроса
+        std::string roles_array = "{";
+        for (size_t i = 0; i < roles.size(); ++i) {
+            roles_array += "\"" + txn.esc(roles[i]) + "\"";
+            if (i < roles.size() - 1) {
+                roles_array += ", ";
+            }
+        }
+        roles_array += "}";
+        // SQL-запрос для добавления пользователя
+        std::string query = "INSERT INTO users (id, last_name, first_name, middle_name, roles, banned) "
+                            "VALUES ('"+ txn.esc(std::to_string(uid)) + "', '" + txn.esc(last_name) + "', '" + txn.esc(first_name) + "', '" + txn.esc(middle_name) + "', "
+                            "'" + roles_array + "', " + (banned ? "TRUE" : "FALSE") + ")";
+        txn.exec(query);
+        txn.commit();       // Завершение транзакции
+
+        std::cout << "User added successfully." << std::endl;
+    } catch (const std::exception &e) {
+        std::cerr << "Error adding user: " << e.what() << std::endl;
+    }
 }
 
 
@@ -53,6 +92,7 @@ void GetUserList(const httplib::Request& req, httplib::Response& res)
     std::vector<std::string> lname = sql_get_list_str("last_name", "users");
     std::vector<std::string> fname = sql_get_list_str("first_name", "users");
     std::vector<std::string> mname = sql_get_list_str("middle_name", "users");
+    //std::cout << "   uid link: " << std::to_string(uid) << std::endl;
 
     nlohmann::json jsonRes;
     jsonRes["users"] = nlohmann::json::array();
@@ -84,11 +124,11 @@ void GetUserNamea(const httplib::Request& req, httplib::Response& res)
     auto permission = CheckToken(req);
     if (Unauthorized(res, permission)) return;
 
-    int id = std::stoi(req.matches[1]);
+    int uid = std::stoi(req.matches[1]);
     nlohmann::json jsonRes;
-    jsonRes["last_name"]   = sql_get_one_str("last_name", "users", id);
-    jsonRes["first_name"]  = sql_get_one_str("first_name", "users", id);
-    jsonRes["middle_name"] = sql_get_one_str("middle_name", "users", id);
+    jsonRes["last_name"]   = sql_get_one_str("last_name", "users", uid);
+    jsonRes["first_name"]  = sql_get_one_str("first_name", "users", uid);
+    jsonRes["middle_name"] = sql_get_one_str("middle_name", "users", uid);
     res.set_content(jsonRes.dump(), "application/json");
 
 
@@ -110,9 +150,23 @@ void SetUserName(const httplib::Request& req, httplib::Response& res)
     
     nlohmann::json body = nlohmann::json::parse(req.body);
     int uid = std::stoi(req.matches[1]);
+    int realuid = permission["userIdx"].as_number();
+    if (uid != realuid )
+    {
+        std::cout << "   real    : " << permission["userIdx"] << std::endl;
+        std::cout << "   uid link: " << std::to_string(uid) << std::endl;
+        std::cout << "[Access denied]" << std::endl;
+        res.status = 403;
+        res.set_content("Action prohibited: uid: " + permission["userIdx"].as_string() + " likn id: " + std::to_string(uid) , "text/plain");
+    }
+    std::cout << "[Access granted]" << std::endl;
     std::string first_name = body["first_name"];    //  имя
     std::string last_name = body["last_name"];      //  фамилия
     std::string middle_name = body["middle_name"];  //  отчество
+
+    std::cout << "   uid link: " << uid << std::endl;
+    std::cout << "   Old: '" << sql_get_one_str("first_name", "users", uid) << "' '" << sql_get_one_str("last_name", "users", uid) << "' '" << sql_get_one_str("middle_name", "users", uid) << "'" << std::endl;
+    std::cout << "   New: '" << first_name << "' '" << last_name << "' '" << middle_name << "'" << std::endl;
 
     sql_update_one_str("first_name", "users", uid, first_name);
     sql_update_one_str("last_name", "users", uid, last_name);
@@ -685,6 +739,8 @@ void AddDiscepline(const httplib::Request& req, httplib::Response& res)
     auto permission = CheckToken(req);
     if (Unauthorized(res, permission)) return;
 
+    //  TODO
+    //  вытащить id из токена
     nlohmann::json body = nlohmann::json::parse(req.body);
     std::string name = body["name"];
     std::string description = body["description"];
@@ -1106,6 +1162,31 @@ void GetTestAnswers(const httplib::Request& req, httplib::Response& res)
         user["id"] = i;
         jsonRes["users"].push_back(user);
     }
+
+    res.set_content(jsonRes.dump(), "application/json");
+
+
+    std::cout << "   End." << std::endl;
+}
+
+//  Возвращает тест
+void GetTestQuests(const httplib::Request& req, httplib::Response& res)
+{
+    /*
+    *   Возвращает название теста, массив id вопросов
+    */
+
+    std::cout << "Add attempt:" << std::endl;
+    auto permission = CheckToken(req);
+    if (Unauthorized(res, permission)) return;
+
+    int disid = std::stoi(req.matches[1]);
+    int testid = std::stoi(req.matches[2]);
+    nlohmann::json jsonRes;
+    jsonRes["questions"] = nlohmann::json::array();
+    std::vector<int> qid = sql_get_array_int("question_ids", "tests", testid);
+    for (auto i : qid)
+        jsonRes["questions"].push_back(i);
 
     res.set_content(jsonRes.dump(), "application/json");
 

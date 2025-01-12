@@ -1,15 +1,16 @@
 const querystring = require('querystring');
+const axios = require('axios');
 const { MongoClient } = require('mongodb');
 
 // .. MONGO
-const uri = "mongodb://localhost:27017";
+const uri = "mongodb://127.0.0.1:27017";
 const dbName = "admin";
 const collectionName = "users";
 
 // .. YANDEX
 const CLIENT_ID_YANDEX = '9bdb9a05b73646f580fe3b12e35b1825';
 const CLIENT_SECRET_YANDEX = 'd7ee049d87e3461baadfd34deebd4ebc';
-const REDIRECT_URI = '/api/auth/callback';
+let REDIRECT_URI = 'http://localhost:9999/api/auth/callback';
 const SCOPE = 'login:info login:email';
 
 // .. GITHUB
@@ -20,19 +21,33 @@ const GITHUB_AUTH_URL = 'https://github.com/login/oauth/authorize';
 const GITHUB_TOKEN_URL = 'https://github.com/login/oauth/access_token';
 const GITHUB_USER_URL = 'https://api.github.com/user';
 
-exports.generateAuthYandexUrl = function (state) {
+exports.generateAuthYandexUrl = function (state, typeReq) {
+    if (typeReq == 'web') {
+        REDIRECT_URI = 'http://localhost:5000/api/auth/callback';
+    } else {
+        REDIRECT_URI = 'http://localhost:9999/api/auth/callback';
+    }
+
     const authUrl = `https://oauth.yandex.ru/authorize?` +
         querystring.stringify({
             response_type: 'code',
             client_id: CLIENT_ID_YANDEX,
+            redirect_uri: REDIRECT_URI,
             scope: SCOPE,
             state: state
         });
     return (JSON.stringify({ authUrl: authUrl }));
 }
 
-exports.generateAuthGithubUrl = function (state) {
-    const authUrl = `${GITHUB_AUTH_URL}?client_id=${GITHUB_CLIENT_ID}&state=${state}&scope=user`;
+exports.generateAuthGithubUrl = function (state, typeReq) {
+
+    if (typeReq == 'web') {
+        REDIRECT_URI = 'http://localhost:5000/api/auth/callback';
+    } else {
+        REDIRECT_URI = 'http://localhost:9999/api/auth/callback';
+    }
+
+    const authUrl = `${GITHUB_AUTH_URL}?client_id=${GITHUB_CLIENT_ID}&state=${state}&scope=user&redirect_uri=${REDIRECT_URI}`;
     return (JSON.stringify({ authUrl: authUrl }));
 }
 
@@ -61,7 +76,7 @@ exports.addOrUpdateUser = async function (email) {
             };
 
             const result = await collection.insertOne(newUserData);
-            return newUserData;
+            return { newUserData, userCount };
         }
     } catch (error) {
         console.error("Ошибка:", error);
@@ -265,7 +280,7 @@ exports.sendPostRequestMain = async function (idx) {
         type: 'addUser', // Фиксированное значение для type
     };
 
-    const url = 'http://localhost:1111/api/db/addUser/';
+    const url = 'http://127.0.0.1:1111/api/db/addUser';
 
     try {
         const response = await axios.post(url, data, {
