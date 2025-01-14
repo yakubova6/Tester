@@ -10,7 +10,7 @@
     double
 - [ ]
     Никакого, т.к. тип не задан явно
-- [ ]
+- [x]
     bool
 - [ ]
     int
@@ -22,7 +22,7 @@
 Ответы:
 - [ ]
     struct a_struct int a;
-- [ ]
+- [x]
     struct a_struct{
     int a;
 };
@@ -34,7 +34,7 @@
     struct {
     int a;
 }
-- [ ]
+- [x]
     struct {
     int a;
 } s;
@@ -56,7 +56,7 @@ std::cout << color;
 Ответы:
 - [ ]
     Строка BLACK
-- [ ]
+- [x]
     1
 - [ ]
     Какое-то "мусорное" значение, т.к. для BLACK НЕ указано значение явно
@@ -73,7 +73,7 @@ std::cout << color;
 container[-1] = 5;
 
 Ответы:
-- [ ]
+- [x]
     Пары: -1:5, 1:2, 3:2
 - [ ]
     Пары: 1:2, 3:2, 5:-1
@@ -89,7 +89,7 @@ Moodle Question Extractor.user.js:57
 Язык Go. Что из нижеперечисленного приведёт к объявлению структуры?
 
 Ответы:
-- [ ]
+- [x]
     type Mail = struct {
     Address string
     Message string
@@ -100,18 +100,18 @@ Moodle Question Extractor.user.js:57
     Name: "John Doe",
     Age:  30,
 }
-- [ ]
+- [x]
     var Address struct {
     Name    string
     City    string
     Pincode int
 }
-- [ ]
+- [x]
     type Employee struct {
     name string
     age int
 }
-- [ ]
+- [x]
     pizza := struct {
     address string 
     name string
