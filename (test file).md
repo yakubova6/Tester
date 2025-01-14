@@ -56,37 +56,41 @@ container[-1] = 5;
 
 Язык Go. Что из нижеперечисленного приведёт к объявлению структуры?
 
->```cpp
->var Address struct {
->     Name    string
->     City    string
->     Pincode int
->}
->```
->```cpp
->pizza := struct {
->     address string 
->     name string
->     cost int
->}{
->     address: "address",
->     name:    "Pizza",
->     cost:    100,
->}
->```
->```cpp
->type Employee struct {
->     name string
->     age int
->}
->```
->```cpp
->type Mail = struct {
->     Address string
->     Message string
->     Code int
->}
->```
+- [x]
+    ```cpp
+    var Address struct {
+        Name    string
+        City    string
+        Pincode int
+    }
+    ```
+- [x]
+    ```cpp
+        pizza := struct {
+        address string 
+        name string
+        cost int
+    }{
+        address: "address",
+        name:    "Pizza",
+        cost:    100,
+    }
+    ```
+- [x]
+    ```cpp
+    type Employee struct {
+        name string
+        age int
+    }
+    ```
+- [x]
+    ```cpp
+    type Mail = struct {
+        Address string
+        Message string
+        Code int
+    }
+    ```
 
 
 ---
