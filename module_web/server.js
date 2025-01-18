@@ -33,7 +33,7 @@ redisClient.connect().then(() => {
     console.error('Failed to connect to Redis:', err);
 });
 
-const SECRET_KEY = process.env.SECRET_KEY || 'your_secret_key';
+const SECRET_KEY = 'your_secret_key';
 
 const handleAuthCallback = async (code, refreshToken) => {
     console.log('handleAuthCallback вызван с параметрами:', { code, refreshToken });
@@ -212,6 +212,81 @@ app.get('/api/auth/callback', async (req, res) => {
         console.error('Ошибка при обработке коллбэка:', error.message);
         res.status(500).json({ error: 'Ошибка при обработке коллбэка' });
     }
+});
+
+// Обработчик для проверки кода
+app.post('/api/auth/verify-code', async (req, res) => {
+    const { code, sessionToken } = req.body; // Извлекаем код и sessionToken
+    console.log('Получен код для проверки:', code);
+    console.log('Получен sessionToken для проверки:', sessionToken);
+
+    if (!sessionToken) {
+        console.error('sessionToken не был передан');
+        return res.status(400).json({ error: 'sessionToken не был передан' });
+    }
+
+    // Извлекаем данные сессии из Redis по sessionToken
+    const sessionData = await redisClient.get(sessionToken);
+    if (!sessionData) {
+        console.error('Данные сессии не найдены для sessionToken:', sessionToken);
+        return res.status(400).json({ error: 'Session data not found' });
+    }
+
+    // Извлекаем refreshToken из данных сессии
+    const { refreshToken } = JSON.parse(sessionData);
+    console.log('Извлеченный refreshToken:', refreshToken);
+
+    // Проверяем код авторизации
+    const codeData = await redisClient.get(code);
+    if (!codeData) {
+        console.error('Код недействителен или истек:', code);
+        return res.status(400).json({ error: 'Invalid or expired code' });
+    }
+
+    const { expiry } = JSON.parse(codeData);
+    if (Date.now() > expiry) {
+        console.error('Код истек:', code);
+        return res.status(400).json({ error: 'Code has expired' });
+    }
+
+    // Проверяем refreshToken и продолжаем процесс авторизации
+    try {
+        const authData = await handleAuthCallback(code, refreshToken);
+        console.log('Данные авторизации получены:', authData);
+
+        if (!authData || !authData.accessToken || !authData.userInfo || !authData.refreshToken) {
+            throw new Error('Не удалось получить необходимые данные из авторизации');
+        }
+
+        const { accessToken, refreshToken: newRefreshToken, userInfo } = authData;
+
+        // Создаем новый sessionToken для пользователя
+        const newSessionToken = jwt.sign({ userInfo }, SECRET_KEY, { expiresIn: '1h' });
+        
+        // Сохраняем новый sessionToken в Redis
+        await redisClient.set(newSessionToken, JSON.stringify({ accessToken, refreshToken: newRefreshToken, userInfo }), 'EX', 3600);
+        console.log('Токен сессии сохранен в Redis с ключом:', newSessionToken);
+
+        // Устанавливаем куку с токеном сессии
+        res.cookie('session_token', newSessionToken, { httpOnly: true, secure: false, sameSite: 'Lax' });
+        console.log('Кука session_token установлена:', newSessionToken);
+
+        // Возвращаем успешный ответ с информацией о пользователе
+        res.json({ success: true, userInfo });
+    } catch (error) {
+        console.error('Ошибка при обмене кода на токены:', error.message);
+        res.status(500).json({ error: 'Ошибка при обмене кода на токены' });
+    }
+});
+
+app.get('/api/auth/get-session-token', (req, res) => {
+    const sessionToken = req.cookies.session_token;
+
+    if (!sessionToken) {
+        return res.status(401).json({ error: 'Session token not found' });
+    }
+
+    return res.json({ sessionToken });
 });
 
 // Проверка сессии
