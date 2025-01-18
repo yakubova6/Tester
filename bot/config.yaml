@@ -1,0 +1,13 @@
+telegram:
+  token: "7756162677:AAGYHNX7TjATQWwAbJ7BExjlc_-e9YzDCwo" 
+
+redis:
+  address: "localhost:6379" # Адрес Redis
+  password: "" # Пароль Redis (оставляем пустым)
+  db: 0 # Номер базы данных (оставляем 0)
+
+auth_module:
+  url: "http://localhost:8000" # URL модуля авторизации
+
+main_module:
+  url: "http://localhost:1111" # URL главного модуля
