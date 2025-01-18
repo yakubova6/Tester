@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import Cookies from 'js-cookie';
 
 const AuthCallback = ({ setUserStatus }) => {
     const navigate = useNavigate();
@@ -28,19 +27,6 @@ const AuthCallback = ({ setUserStatus }) => {
         axios.post('/api/auth/callback', { code, state: returnedState })
             .then((response) => {
                 if (response.data && response.data.success) {
-                    // Извлечение accessToken и refreshToken из ответа
-                    const { accessToken, refreshToken } = response.data;
-                    
-                    // Сохранение токенов в куки
-                    if (accessToken) {
-                        Cookies.set('access_token', accessToken); // Сохраняем accessToken в куки
-                        console.log('Сохранен токен доступа в куки:', accessToken);
-                    }
-                    if (refreshToken) {
-                        Cookies.set('refresh_token', refreshToken); // Сохраняем refreshToken в куки
-                        console.log('Сохранен токен обновления в куки:', refreshToken);
-                    }
-
                     // Установка состояния пользователя
                     setUserStatus('authorized'); 
                     console.log('Авторизация успешна:', response.data);
