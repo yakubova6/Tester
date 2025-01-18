@@ -17,6 +17,7 @@ import Answers from './components/resources/Answers/Answers';
 import Login from './components/Login'; 
 import CreateTest from './components/resources/Tests/TestCreate'; 
 import DisciplineCreate from './components/resources/Disciplines/DisciplineCreate'; 
+import EnterCode from './components/auth/EnterCode'; 
 
 const App = () => {
     const [userStatus, setUserStatus] = useState('unknown');
@@ -55,6 +56,7 @@ const App = () => {
                 <Routes>
                     <Route path="/" element={<Login userStatus={userStatus} setUserStatus={setUserStatus} />} />
                     <Route path="/login" element={<Navigate to="/" />} />
+                    <Route path="/enter-code" element={userStatus === 'authorized' ? <EnterCode setUserStatus={setUserStatus} /> : <Navigate to="/" />} /> {/* Новый маршрут для EnterCode */}
                     <Route path="/dashboard" element={userStatus === 'authorized' ? <Dashboard userData={userData} /> : <Navigate to="/" />} />
                     <Route path="/logout" element={<Logout setUserStatus={setUserStatus} />} />
                     <Route path="/auth/callback" element={<AuthCallback setUserStatus={setUserStatus} />} />
