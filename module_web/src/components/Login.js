@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './styles/Login.css';
 import GitHubAuth from './auth/GitHubAuth';
 import YandexAuth from './auth/YandexAuth'; 
@@ -16,6 +16,10 @@ const Login = ({ userStatus, setUserStatus }) => {
         navigate('/dashboard');
     };
 
+    const handleEnterCodeClick = () => {
+        navigate('/enter-code');
+    };
+
     return (
         <div className="container">
             <h1>Добро пожаловать!</h1>
@@ -30,6 +34,9 @@ const Login = ({ userStatus, setUserStatus }) => {
             {userStatus === 'authorized' && (
                 <>
                     <p>Вы авторизованы!</p>
+                    <button className="social-button" onClick={handleEnterCodeClick}>
+                        Авторизоваться с другого устройства
+                    </button>
                     <button className="social-button" onClick={handleDashboardClick}>Перейти в личный кабинет</button>
                     <button className="social-button" onClick={handleLogoutClick}>Выйти</button>
                 </>
