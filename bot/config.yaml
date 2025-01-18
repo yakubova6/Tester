@@ -1,5 +1,5 @@
 telegram:
-  token: "7756162677:AAGYHNX7TjATQWwAbJ7BExjlc_-e9YzDCwo" # Замените на токен вашего бота
+  token: "7756162677:AAGYHNX7TjATQWwAbJ7BExjlc_-e9YzDCwo" 
 
 redis:
   address: "localhost:6379" # Адрес Redis
